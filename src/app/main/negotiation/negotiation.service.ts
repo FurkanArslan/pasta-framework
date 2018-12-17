@@ -6,7 +6,7 @@ import { FuseUtils } from '@fuse/utils';
 
 
 @Injectable()
-export class NegotiatiorService implements Resolve<any>
+export class NegotiationService implements Resolve<any>
 {
     contacts: any[];
     chats: any[];
@@ -143,7 +143,7 @@ export class NegotiatiorService implements Resolve<any>
                 .subscribe((response: any) => {
 
                     // Post the new the user data
-                    this._httpClient.post('api/chat-user/' + this.user.id, this.user)
+                    this._httpClient.post('api/negotiation-user/' + this.user.id, this.user)
                         .subscribe(newUserData => {
 
                             // Update the user data from server
@@ -183,7 +183,7 @@ export class NegotiatiorService implements Resolve<any>
      */
     updateUserData(userData): void
     {
-        this._httpClient.post('api/chat-user/' + this.user.id, userData)
+        this._httpClient.post('api/negotiation-user/' + this.user.id, userData)
             .subscribe((response: any) => {
                     this.user = userData;
                 }
@@ -251,7 +251,7 @@ export class NegotiatiorService implements Resolve<any>
     getUser(): Promise<any>
     {
         return new Promise((resolve, reject) => {
-            this._httpClient.get('api/chat-user')
+            this._httpClient.get('api/negotiation-user')
                 .subscribe((response: any) => {
                     resolve(response[0]);
                 }, reject);

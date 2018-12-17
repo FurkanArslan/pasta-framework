@@ -7,15 +7,9 @@ import {
 
 import { FuseSharedModule } from '@fuse/shared.module';
 
-import { NegotiatiorService } from 'app/main/negotiation/negotiation.service';
+import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 import { NegotiationComponent } from 'app/main/negotiation/negotiation.component';
-import { ChatStartComponent } from 'app/main/negotiation/chat-start/chat-start.component';
-import { ChatViewComponent } from 'app/main/negotiation/chat-view/chat-view.component';
-import { ChatChatsSidenavComponent } from 'app/main/negotiation/sidenavs/left/chats/chats.component';
-import { ChatUserSidenavComponent } from 'app/main/negotiation/sidenavs/left/user/user.component';
-import { ChatLeftSidenavComponent } from 'app/main/negotiation/sidenavs/left/left.component';
-import { ChatRightSidenavComponent } from 'app/main/negotiation/sidenavs/right/right.component';
-import { ChatContactSidenavComponent } from 'app/main/negotiation/sidenavs/right/contact/contact.component';
+import { NegotiationViewComponent } from 'app/main/negotiation/negotiation-view/negotiation-view.component';
 
 const routes: Routes = [
     {
@@ -23,7 +17,7 @@ const routes: Routes = [
         component: NegotiationComponent,
         children: [],
         resolve: {
-            chat: NegotiatiorService
+            chat: NegotiationService
         }
     }
 ];
@@ -31,13 +25,7 @@ const routes: Routes = [
 @NgModule({
     declarations: [
         NegotiationComponent,
-        ChatViewComponent,
-        ChatStartComponent,
-        ChatChatsSidenavComponent,
-        ChatUserSidenavComponent,
-        ChatLeftSidenavComponent,
-        ChatRightSidenavComponent,
-        ChatContactSidenavComponent
+        NegotiationViewComponent,
     ],
     imports     : [
         RouterModule.forChild(routes),
@@ -56,7 +44,7 @@ const routes: Routes = [
         FuseSharedModule
     ],
     providers   : [
-        NegotiatiorService
+        NegotiationService
     ]
 })
 export class NegotiationModule

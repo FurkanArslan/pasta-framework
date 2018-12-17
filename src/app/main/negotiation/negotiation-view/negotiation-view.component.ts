@@ -5,15 +5,15 @@ import { takeUntil } from 'rxjs/operators';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
-import { NegotiatiorService } from 'app/main/negotiation/negotiation.service';
+import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 
 @Component({
-    selector     : 'chat-view',
-    templateUrl  : './chat-view.component.html',
-    styleUrls    : ['./chat-view.component.scss'],
+    selector     : 'negotiation-view',
+    templateUrl  : './negotiation-view.component.html',
+    styleUrls    : ['./negotiation-view.component.scss'],
     encapsulation: ViewEncapsulation.None
 })
-export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
+export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewInit
 {
     user: any;
     chat: any;
@@ -37,10 +37,10 @@ export class ChatViewComponent implements OnInit, OnDestroy, AfterViewInit
     /**
      * Constructor
      *
-     * @param {NegotiatiorService} _chatService
+     * @param {NegotiationService} _chatService
      */
     constructor(
-        private _chatService: NegotiatiorService
+        private _chatService: NegotiationService
     )
     {
         // Set the private defaults

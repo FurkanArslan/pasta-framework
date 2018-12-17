@@ -51,7 +51,7 @@ export class FakeDbService implements InMemoryDbService
             // Chat
             'chat-contacts': ChatFakeDb.contacts,
             'chat-chats'   : ChatFakeDb.chats,
-            'chat-user'    : ChatFakeDb.user,
+            'negotiation-user'    : ChatFakeDb.user,
 
             // File Manager
             'file-manager': FileManagerFakeDb.files,

@@ -7,7 +7,7 @@
     $is-dark: map-get($theme, is-dark);
 
     // Chat start
-    chat-start {
+    negotiation-start {
 
         .big-circle {
             background: map-get($background, card);
@@ -16,7 +16,7 @@
     }
 
     // Chat view
-    chat-view {
+    negotiation-view {
 
         .chat {
 

@@ -4,7 +4,7 @@ import { takeUntil } from 'rxjs/operators';
 
 import { fuseAnimations } from '@fuse/animations';
 
-import { NegotiatiorService } from 'app/main/negotiation/negotiation.service';
+import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 
 @Component({
     selector     : 'negotiation',
@@ -23,10 +23,10 @@ export class NegotiationComponent implements OnInit, OnDestroy
     /**
      * Constructor
      *
-     * @param {NegotiatiorService} _chatService
+     * @param {NegotiationService} _chatService
      */
     constructor(
-        private _chatService: NegotiatiorService
+        private _chatService: NegotiationService
     )
     {
         // Set the private defaults
