@@ -21,6 +21,10 @@ import { NegotiationModule } from './main/negotiation/negotiation.module';
 import { InMemoryWebApiModule } from 'angular-in-memory-web-api';
 import { FakeDbService } from './fake-db/fake-db.service';
 
+import { AngularFireModule } from '@angular/fire';
+import { AngularFirestoreModule } from '@angular/fire/firestore';
+import { environment } from 'environments/environment';
+
 const appRoutes: Routes = [
     {
         path      : '**',
@@ -37,6 +41,9 @@ const appRoutes: Routes = [
         BrowserAnimationsModule,
         HttpClientModule,
         RouterModule.forRoot(appRoutes),
+
+        AngularFireModule.initializeApp(environment.firebase, 'pasta-framework'),
+        AngularFirestoreModule,
 
         TranslateModule.forRoot(),
         InMemoryWebApiModule.forRoot(FakeDbService, {

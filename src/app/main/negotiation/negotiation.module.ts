@@ -16,9 +16,9 @@ const routes: Routes = [
         path: '**',
         component: NegotiationComponent,
         children: [],
-        resolve: {
-            chat: NegotiationService
-        }
+        // resolve: {
+        //     chat: NegotiationService
+        // }
     }
 ];
 

@@ -5,6 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { fuseAnimations } from '@fuse/animations';
 
 import { NegotiationService } from 'app/main/negotiation/negotiation.service';
+import { AngularFirestore } from '@angular/fire/firestore';
 
 @Component({
     selector     : 'negotiation',
@@ -26,7 +27,8 @@ export class NegotiationComponent implements OnInit, OnDestroy
      * @param {NegotiationService} _chatService
      */
     constructor(
-        private _chatService: NegotiationService
+        private _chatService: NegotiationService,
+        private db: AngularFirestore
     )
     {
         // Set the private defaults
