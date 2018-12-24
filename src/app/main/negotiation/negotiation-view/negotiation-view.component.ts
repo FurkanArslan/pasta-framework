@@ -8,17 +8,26 @@ import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scr
 import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 
 @Component({
-    selector     : 'negotiation-view',
-    templateUrl  : './negotiation-view.component.html',
-    styleUrls    : ['./negotiation-view.component.scss'],
+    selector: 'negotiation-view',
+    templateUrl: './negotiation-view.component.html',
+    styleUrls: ['./negotiation-view.component.scss'],
     encapsulation: ViewEncapsulation.None
 })
-export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewInit
-{
-    user: any;
+export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewInit {
+    user = {
+        'id': '2',
+        'name': 'Furkan'
+    };
+
     chat: any;
-    dialog: any;
-    contact: any;
+    dialog: any[];
+
+    simulator = {
+        'id': '1',
+        'name': 'Simulator',
+        'avatar': 'assets/images/avatars/simulator.png',
+    };
+
     replyInput: any;
     selectedChat: any;
 
@@ -41,10 +50,11 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      */
     constructor(
         private _chatService: NegotiationService
-    )
-    {
+    ) {
         // Set the private defaults
         this._unsubscribeAll = new Subject();
+
+        this.dialog = [];
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -54,27 +64,44 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     /**
      * On init
      */
-    ngOnInit(): void
-    {
-        this.user = this._chatService.user;
-        this._chatService.onChatSelected
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(chatData => {
-                if ( chatData )
-                {
-                    this.selectedChat = chatData;
-                    this.contact = chatData.contact;
-                    this.dialog = chatData.dialog;
-                    this.readyToReply();
-                }
-            });
+    ngOnInit(): void {
+        // this.user = this._chatService.user;
+        // this._chatService.onChatSelected
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe(chatData => {
+        //         if ( chatData )
+        //         {
+        // this.selectedChat = chatData;
+        // this.contact = chatData.contact;
+        // this.dialog = chatData.dialog;
+        this.readyToReply();
+        //         }
+        //     });
+        this.createMessage('Hi!');
+        this.createMessage('Welcome to Our Negotiation Simulation');
+        this.createMessage('I am Simulator');
+        this.createMessage('I will guide you during simulation.');
+    }
+
+    /**
+     * Create Automated Message
+     */
+    createMessage(message): void {
+        // Message
+        const message_ = {
+            who: this.simulator.id,
+            message: message,
+            time: new Date().toISOString()
+        };
+
+        // Add the message to the chat
+        this.dialog.push(message_);
     }
 
     /**
      * After view init
      */
-    ngAfterViewInit(): void
-    {
+    ngAfterViewInit(): void {
         this.replyInput = this.replyInputField.first.nativeElement;
         this.readyToReply();
     }
@@ -82,8 +109,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     /**
      * On destroy
      */
-    ngOnDestroy(): void
-    {
+    ngOnDestroy(): void {
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
@@ -100,11 +126,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * @param i
      * @returns {boolean}
      */
-    shouldShowContactAvatar(message, i): boolean
-    {
+    shouldShowContactAvatar(message, i): boolean {
         return (
-            message.who === this.contact.id &&
-            ((this.dialog[i + 1] && this.dialog[i + 1].who !== this.contact.id) || !this.dialog[i + 1])
+            message.who === this.simulator.id &&
+            ((this.dialog[i + 1] && this.dialog[i + 1].who !== this.simulator.id) || !this.dialog[i + 1])
         );
     }
 
@@ -115,8 +140,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * @param i
      * @returns {boolean}
      */
-    isFirstMessageOfGroup(message, i): boolean
-    {
+    isFirstMessageOfGroup(message, i): boolean {
         return (i === 0 || this.dialog[i - 1] && this.dialog[i - 1].who !== message.who);
     }
 
@@ -127,24 +151,21 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * @param i
      * @returns {boolean}
      */
-    isLastMessageOfGroup(message, i): boolean
-    {
+    isLastMessageOfGroup(message, i): boolean {
         return (i === this.dialog.length - 1 || this.dialog[i + 1] && this.dialog[i + 1].who !== message.who);
     }
 
     /**
      * Select contact
      */
-    selectContact(): void
-    {
-        this._chatService.selectContact(this.contact);
+    selectContact(): void {
+        this._chatService.selectContact(this.simulator);
     }
 
     /**
      * Ready to reply
      */
-    readyToReply(): void
-    {
+    readyToReply(): void {
         setTimeout(() => {
             this.focusReplyInput();
             this.scrollToBottom();
@@ -154,8 +175,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     /**
      * Focus to the reply input
      */
-    focusReplyInput(): void
-    {
+    focusReplyInput(): void {
         setTimeout(() => {
             this.replyInput.focus();
         });
@@ -166,11 +186,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      *
      * @param {number} speed
      */
-    scrollToBottom(speed?: number): void
-    {
+    scrollToBottom(speed?: number): void {
         speed = speed || 400;
-        if ( this.directiveScroll )
-        {
+        if (this.directiveScroll) {
             this.directiveScroll.update();
 
             setTimeout(() => {
@@ -182,20 +200,18 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     /**
      * Reply
      */
-    reply(event): void
-    {
+    reply(event): void {
         event.preventDefault();
 
-        if ( !this.replyForm.form.value.message )
-        {
+        if (!this.replyForm.form.value.message) {
             return;
         }
 
         // Message
         const message = {
-            who    : this.user.id,
+            who: this.user.id,
             message: this.replyForm.form.value.message,
-            time   : new Date().toISOString()
+            time: new Date().toISOString()
         };
 
         // Add the message to the chat
@@ -205,8 +221,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.replyForm.reset();
 
         // Update the server
-        this._chatService.updateDialog(this.selectedChat.chatId, this.dialog).then(response => {
+        // this._chatService.updateDialog(this.selectedChat.chatId, this.dialog).then(response => {
             this.readyToReply();
-        });
+        // });
     }
 }

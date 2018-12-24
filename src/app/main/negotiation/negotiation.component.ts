@@ -44,11 +44,11 @@ export class NegotiationComponent implements OnInit, OnDestroy
      */
     ngOnInit(): void
     {
-        this._chatService.onChatSelected
-            .pipe(takeUntil(this._unsubscribeAll))
-            .subscribe(chatData => {
-                this.selectedChat = chatData;
-            });
+        // this._chatService.onChatSelected
+        //     .pipe(takeUntil(this._unsubscribeAll))
+        //     .subscribe(chatData => {
+        //         this.selectedChat = chatData;
+        //     });
     }
 
     /**

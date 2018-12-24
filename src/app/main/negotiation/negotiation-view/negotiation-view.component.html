@@ -22,17 +22,13 @@
 
                     <div class="avatar-wrapper">
 
-                        <img [src]="contact.avatar"
+                        <img [src]="simulator.avatar"
                              class="avatar"
-                             alt="{{contact.name}}"/>
-
-                        <mat-icon class="s-16 status"
-                                  [ngClass]="contact.status">
-                        </mat-icon>
+                             alt="{{simulator.name}}"/>
                     </div>
 
                     <div class="chat-contact-name">
-                        {{contact.name}}
+                        {{simulator.name}}
                     </div>
 
                 </div>
@@ -71,7 +67,7 @@
                             }">
 
                 <img *ngIf="shouldShowContactAvatar(message, i)"
-                     src="{{contact.avatar}}"
+                     src="{{simulator.avatar}}"
                      class="avatar">
 
                 <div class="bubble">
