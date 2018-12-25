@@ -58,7 +58,7 @@
         <div class="chat-messages">
 
             <!-- MESSAGE -->
-            <div *ngFor="let message of dialog; let i = index" class="message-row"
+            <div *ngFor="let message of negotiation?.dialogs; let i = index" class="message-row"
                  [ngClass]="{
                             'me': message.who === user.id,
                             'contact': message.who !== user.id,

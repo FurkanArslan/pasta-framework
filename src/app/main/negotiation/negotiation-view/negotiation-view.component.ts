@@ -6,6 +6,11 @@ import { takeUntil } from 'rxjs/operators';
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
 import { NegotiationService } from 'app/main/negotiation/negotiation.service';
+import { Message } from '../models/message.model';
+import { User } from '../models/user.model';
+import { NegotiationPhrase, NegotiationPhrases } from '../models/negotiation-phrases.model';
+import { ScenarioTypes, Scenario } from '../models/scenario.model';
+import { Negotiation } from '../models/negotiation.model';
 
 @Component({
     selector: 'negotiation-view',
@@ -14,19 +19,11 @@ import { NegotiationService } from 'app/main/negotiation/negotiation.service';
     encapsulation: ViewEncapsulation.None
 })
 export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewInit {
-    user = {
-        'id': '2',
-        'name': 'Furkan'
-    };
-
     chat: any;
-    dialog: any[];
+    negotiation: Negotiation;
 
-    simulator = {
-        'id': '1',
-        'name': 'Simulator',
-        'avatar': 'assets/images/avatars/simulator.png',
-    };
+    user: User;
+    simulator: User;
 
     replyInput: any;
     selectedChat: any;
@@ -42,6 +39,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     // Private
     private _unsubscribeAll: Subject<any>;
+    private _phrase: NegotiationPhrase;
 
     /**
      * Constructor
@@ -51,10 +49,13 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     constructor(
         private _chatService: NegotiationService
     ) {
+        this.negotiation = new Negotiation('111');
+        this.user = new User('2', 'Furkan');
+        this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
+
         // Set the private defaults
         this._unsubscribeAll = new Subject();
-
-        this.dialog = [];
+        this._phrase = NegotiationPhrase.WELCOME;
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -65,7 +66,6 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * On init
      */
     ngOnInit(): void {
-        // this.user = this._chatService.user;
         // this._chatService.onChatSelected
         //     .pipe(takeUntil(this._unsubscribeAll))
         //     .subscribe(chatData => {
@@ -77,31 +77,31 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.readyToReply();
         //         }
         //     });
-        this.createMessage('Hi!');
-        this.createMessage('Welcome to Our Negotiation Simulation');
-        this.createMessage('I am Simulator');
-        this.createMessage('I will guide you during simulation.');
     }
 
     /**
      * Create Automated Message
      */
-    createMessage(message): void {
+    createAutomatedMessage(message): void {
         // Message
-        const message_ = {
-            who: this.simulator.id,
-            message: message,
-            time: new Date().toISOString()
-        };
+        const newMessage = new Message(this.simulator.id, message);
 
         // Add the message to the chat
-        this.dialog.push(message_);
+        this.negotiation.dialogs.push(newMessage);
     }
 
     /**
      * After view init
      */
     ngAfterViewInit(): void {
+        this.createAutomatedMessage('Hi!');
+        this.createAutomatedMessage('Welcome to our Negotiation Simulation!');
+        this.createAutomatedMessage('I am the Simulator');
+        this.createAutomatedMessage('I will guide you during simulation.');
+
+        this._phrase = NegotiationPhrase.SCENARIO_SELECTION;
+        this.createAutomatedMessage('There are three available scenario in our simulation. Type between 1-3 to choice scenario.');
+
         this.replyInput = this.replyInputField.first.nativeElement;
         this.readyToReply();
     }
@@ -129,7 +129,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     shouldShowContactAvatar(message, i): boolean {
         return (
             message.who === this.simulator.id &&
-            ((this.dialog[i + 1] && this.dialog[i + 1].who !== this.simulator.id) || !this.dialog[i + 1])
+            ((this.negotiation.dialogs[i + 1] && this.negotiation.dialogs[i + 1].who !== this.simulator.id) || !this.negotiation.dialogs[i + 1])
         );
     }
 
@@ -141,7 +141,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * @returns {boolean}
      */
     isFirstMessageOfGroup(message, i): boolean {
-        return (i === 0 || this.dialog[i - 1] && this.dialog[i - 1].who !== message.who);
+        return (i === 0 || this.negotiation.dialogs[i - 1] && this.negotiation.dialogs[i - 1].who !== message.who);
     }
 
     /**
@@ -152,7 +152,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * @returns {boolean}
      */
     isLastMessageOfGroup(message, i): boolean {
-        return (i === this.dialog.length - 1 || this.dialog[i + 1] && this.dialog[i + 1].who !== message.who);
+        return (i === this.negotiation.dialogs.length - 1 || this.negotiation.dialogs[i + 1] && this.negotiation.dialogs[i + 1].who !== message.who);
     }
 
     /**
@@ -208,21 +208,36 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         }
 
         // Message
-        const message = {
-            who: this.user.id,
-            message: this.replyForm.form.value.message,
-            time: new Date().toISOString()
-        };
+        const message = new Message(this.user.id, this.replyForm.form.value.message);
 
         // Add the message to the chat
-        this.dialog.push(message);
+        this.negotiation.dialogs.push(message);
 
-        // Reset the reply form
-        this.replyForm.reset();
+        switch (this._phrase) {
+            case NegotiationPhrase.SCENARIO_SELECTION: {
+                this.setScenario(this.replyForm.form.value.message);
+            }
+        }
+
+         // Reset the reply form
+         this.replyForm.reset();
 
         // Update the server
-        // this._chatService.updateDialog(this.selectedChat.chatId, this.dialog).then(response => {
-            this.readyToReply();
+        // this._chatService.updateDialog(this.selectedChat.chatId, this.negotiation.dialogs).then(response => {
+        this.readyToReply();
         // });
+    }
+
+    private setScenario(selectedScenario: string): void {
+        console.log(selectedScenario);
+        if (Object.values(ScenarioTypes).includes(selectedScenario)) {
+            this.negotiation.scenario = new Scenario(selectedScenario);
+
+            this.createAutomatedMessage(`${selectedScenario} is good choice sir/madam`);
+            this._phrase = NegotiationPhrase.ROLE_SELECTION;
+        } else {
+            this.createAutomatedMessage('I think you selected wrong scenario, you may try once again.');
+            this.readyToReply();
+        }
     }
 }
