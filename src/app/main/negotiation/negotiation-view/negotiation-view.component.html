@@ -60,8 +60,8 @@
             <!-- MESSAGE -->
             <div *ngFor="let message of negotiation?.dialogs; let i = index" class="message-row"
                  [ngClass]="{
-                            'me': message.who === user.id,
-                            'contact': message.who !== user.id,
+                            'me': message.who === negotiation.user.id,
+                            'contact': message.who !== negotiation.user.id,
                             'first-of-group': isFirstMessageOfGroup(message, i),
                             'last-of-group': isLastMessageOfGroup(message, i)
                             }">

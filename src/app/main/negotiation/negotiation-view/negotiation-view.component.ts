@@ -11,6 +11,7 @@ import { User } from '../models/user.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../models/negotiation-phrases.model';
 import { ScenarioTypes, Scenario } from '../models/scenario.model';
 import { Negotiation } from '../models/negotiation.model';
+import { Roles } from '../models/roles.enum';
 
 @Component({
     selector: 'negotiation-view',
@@ -22,7 +23,6 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     chat: any;
     negotiation: Negotiation;
 
-    user: User;
     simulator: User;
 
     replyInput: any;
@@ -49,8 +49,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     constructor(
         private _chatService: NegotiationService
     ) {
-        this.negotiation = new Negotiation('111');
-        this.user = new User('2', 'Furkan');
+        this.negotiation = new Negotiation('111', new User('2', 'Furkan'));
         this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
 
         // Set the private defaults
@@ -208,19 +207,22 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         }
 
         // Message
-        const message = new Message(this.user.id, this.replyForm.form.value.message);
+        const message = new Message(this.negotiation.user.id, this.replyForm.form.value.message);
 
         // Add the message to the chat
         this.negotiation.dialogs.push(message);
 
         switch (this._phrase) {
             case NegotiationPhrase.SCENARIO_SELECTION: {
-                this.setScenario(this.replyForm.form.value.message);
+                this.setScenario(this.replyForm.form.value.message); break;
+            }
+            case NegotiationPhrase.ROLE_SELECTION: {
+                this.setRole(this.replyForm.form.value.message); break;
             }
         }
 
-         // Reset the reply form
-         this.replyForm.reset();
+        // Reset the reply form
+        this.replyForm.reset();
 
         // Update the server
         // this._chatService.updateDialog(this.selectedChat.chatId, this.negotiation.dialogs).then(response => {
@@ -229,15 +231,39 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     private setScenario(selectedScenario: string): void {
-        console.log(selectedScenario);
         if (Object.values(ScenarioTypes).includes(selectedScenario)) {
-            this.negotiation.scenario = new Scenario(selectedScenario);
+            switch (selectedScenario) {
+                case ScenarioTypes.PH: this.negotiation.scenario = new Scenario(selectedScenario, Roles.POLICE, Roles.HOSPITAL); break;
+                case ScenarioTypes.PL: this.negotiation.scenario = new Scenario(selectedScenario, Roles.POLICE, Roles.LAWYER); break;
+                case ScenarioTypes.PC: this.negotiation.scenario = new Scenario(selectedScenario, Roles.POLICE, Roles.COMPANY); break;
+            }
 
             this.createAutomatedMessage(`${selectedScenario} is good choice sir/madam`);
             this._phrase = NegotiationPhrase.ROLE_SELECTION;
+            this.showOptionsForRoleSelection();
+
         } else {
             this.createAutomatedMessage('I think you selected wrong scenario, you may try once again.');
             this.readyToReply();
+        }
+    }
+
+    private showOptionsForRoleSelection(): void {
+        this.createAutomatedMessage('In this scenario you can choice two different roles.');
+        this.createAutomatedMessage(`First role is ${this.negotiation.scenario.role1} and other role is ${this.negotiation.scenario.role2}.`);
+        this.createAutomatedMessage('Please choice your role by typing 1 or 2');
+    }
+
+    private setRole(selectedRole: string): void {
+        const role = +selectedRole;
+        if ([1, 2].indexOf(role) > -1) {
+            if (role === 1) {
+                this.negotiation.user.role = this.negotiation.scenario.role1;
+                this.negotiation.agent = new User('2', this.negotiation.scenario.role2, null, this.negotiation.scenario.role2);
+            }else{
+                this.negotiation.user.role = this.negotiation.scenario.role2;
+                this.negotiation.agent = new User('2', this.negotiation.scenario.role1, null, this.negotiation.scenario.role1);
+            }
         }
     }
 }
