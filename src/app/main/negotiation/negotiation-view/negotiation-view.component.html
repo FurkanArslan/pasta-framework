@@ -9,22 +9,19 @@
             <div fxLayout="row" fxLayoutAlign="start center">
 
                 <!-- RESPONSIVE CHATS BUTTON-->
-                <button mat-icon-button fxHide.gt-md class="responsive-chats-button mr-16"
-                        fuseMatSidenavToggler="chat-left-sidenav"
-                        aria-label="chats button">
+                <button mat-icon-button fxHide.gt-md class="responsive-chats-button mr-16" fuseMatSidenavToggler="chat-left-sidenav"
+                    aria-label="chats button">
                     <mat-icon>chat</mat-icon>
                 </button>
                 <!-- / RESPONSIVE CHATS BUTTON-->
 
                 <!-- CHAT CONTACT-->
-                <div class="chat-contact" fxLayout="row" fxLayoutAlign="start center"
-                     fuseMatSidenavToggler="chat-right-sidenav" (click)="selectContact()">
+                <div class="chat-contact" fxLayout="row" fxLayoutAlign="start center" fuseMatSidenavToggler="chat-right-sidenav"
+                    (click)="selectContact()">
 
                     <div class="avatar-wrapper">
 
-                        <img [src]="simulator.avatar"
-                             class="avatar"
-                             alt="{{simulator.name}}"/>
+                        <img [src]="simulator.avatar" class="avatar" alt="{{simulator.name}}" />
                     </div>
 
                     <div class="chat-contact-name">
@@ -52,23 +49,20 @@
     <!-- / CHAT TOOLBAR -->
 
     <!-- CHAT CONTENT -->
-    <div id="chat-content" fxFlex="1 1 auto"  fusePerfectScrollbar>
+    <div id="chat-content" fxFlex="1 1 auto" fusePerfectScrollbar>
 
         <!-- CHAT MESSAGES -->
         <div class="chat-messages">
 
             <!-- MESSAGE -->
-            <div *ngFor="let message of negotiation?.dialogs; let i = index" class="message-row"
-                 [ngClass]="{
+            <div *ngFor="let message of negotiation?.dialogs; let i = index" class="message-row" [ngClass]="{
                             'me': message.who === negotiation.user.id,
                             'contact': message.who !== negotiation.user.id,
                             'first-of-group': isFirstMessageOfGroup(message, i),
                             'last-of-group': isLastMessageOfGroup(message, i)
                             }">
 
-                <img *ngIf="shouldShowContactAvatar(message, i)"
-                     src="{{simulator.avatar}}"
-                     class="avatar">
+                <img *ngIf="shouldShowContactAvatar(message, i)" src="{{simulator.avatar}}" class="avatar">
 
                 <div class="bubble">
                     <div class="message">{{message.message}}</div>
@@ -88,16 +82,18 @@
     <div class="chat-footer" fxFlex="0 0 auto" fxLayout="column">
 
         <!-- REPLY FORM -->
-        <div class="reply-form" fxFlex="0 0 auto" fxLayout="row" fxLayoutAlign="center center">
+        <div class="reply-form" fxFlex="0 0 auto" fxLayout="row" fxLayoutAlign="center center" [ngSwitch]="_phrase">
 
-            <form #replyForm="ngForm"
-                  (ngSubmit)="reply($event)"
-                  (keydown.enter)="reply($event)"
-                  fxFlex fxLayout="row" fxLayoutAlign="start center">
+            <app-negotiation-input *ngSwitchCase="negotiationPhrases.FIRST_OFFER" [negotiation]="negotiation">
+
+            </app-negotiation-input>
+
+            <form #replyForm="ngForm" *ngSwitchDefault (ngSubmit)="reply($event)" (keydown.enter)="reply($event)"
+                fxFlex fxLayout="row" fxLayoutAlign="start center">
 
                 <mat-form-field class="message-text" fxFlex floatLabel="never" appearance="standard">
-                    <textarea matInput #replyInput placeholder="Type your message"
-                              ngModel name="message" [rows]="1" [matTextareaAutosize]="true"></textarea>
+                    <textarea matInput #replyInput placeholder="Type your message" ngModel name="message" [rows]="1"
+                        [matTextareaAutosize]="true"></textarea>
                 </mat-form-field>
 
                 <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">

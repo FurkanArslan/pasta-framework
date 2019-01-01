@@ -9,9 +9,11 @@ import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 import { Message } from '../models/message.model';
 import { User } from '../models/user.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../models/negotiation-phrases.model';
-import { ScenarioTypes, Scenario } from '../models/scenario.model';
 import { Negotiation } from '../models/negotiation.model';
 import { Roles } from '../models/roles.enum';
+import { ScenarioFactoryService } from '../factories/scenario-factory.service';
+import { isNull } from 'util';
+import { NormTypes } from '../models/norm/norm-types.enum';
 
 @Component({
     selector: 'negotiation-view',
@@ -22,6 +24,7 @@ import { Roles } from '../models/roles.enum';
 export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewInit {
     chat: any;
     negotiation: Negotiation;
+    negotiationPhrases = NegotiationPhrase;
 
     simulator: User;
 
@@ -47,7 +50,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * @param {NegotiationService} _chatService
      */
     constructor(
-        private _chatService: NegotiationService
+        private _chatService: NegotiationService,
+        private scenarioFactory: ScenarioFactoryService
     ) {
         this.negotiation = new Negotiation('111', new User('2', 'Furkan'));
         this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
@@ -231,12 +235,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     private setScenario(selectedScenario: string): void {
-        if (Object.values(ScenarioTypes).includes(selectedScenario)) {
-            switch (selectedScenario) {
-                case ScenarioTypes.PH: this.negotiation.scenario = new Scenario(selectedScenario, Roles.POLICE, Roles.HOSPITAL); break;
-                case ScenarioTypes.PL: this.negotiation.scenario = new Scenario(selectedScenario, Roles.POLICE, Roles.LAWYER); break;
-                case ScenarioTypes.PC: this.negotiation.scenario = new Scenario(selectedScenario, Roles.POLICE, Roles.COMPANY); break;
-            }
+        const scenario = this.scenarioFactory.getScenario(selectedScenario);
+        if (!isNull(scenario)) {
+            this.negotiation.scenario = scenario;
 
             this.createAutomatedMessage(`${selectedScenario} is good choice sir/madam`);
             this._phrase = NegotiationPhrase.ROLE_SELECTION;
@@ -260,10 +261,13 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             if (role === 1) {
                 this.negotiation.user.role = this.negotiation.scenario.role1;
                 this.negotiation.agent = new User('2', this.negotiation.scenario.role2, null, this.negotiation.scenario.role2);
-            }else{
+            } else {
                 this.negotiation.user.role = this.negotiation.scenario.role2;
                 this.negotiation.agent = new User('2', this.negotiation.scenario.role1, null, this.negotiation.scenario.role1);
             }
+
+            this.createAutomatedMessage(`You selected ${this.negotiation.user.role} role`);
+            this._phrase = NegotiationPhrase.FIRST_OFFER;
         }
     }
 }

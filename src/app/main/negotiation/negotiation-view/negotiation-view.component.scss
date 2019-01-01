@@ -198,6 +198,17 @@ negotiation-view {
                                     width: calc(100% - 64px);
                                     padding: 0;
                                 }
+
+                                mat-select {
+                                    .mat-select-trigger{
+                                        height: 2em;
+                                        width: 9em;
+
+                                        .mat-select-value{
+                                            place-content: center center;
+                                        }
+                                    }
+                                }
                             }
                         }
 

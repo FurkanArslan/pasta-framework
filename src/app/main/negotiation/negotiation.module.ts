@@ -2,7 +2,9 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import {
-    MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, MatListModule, MatMenuModule, MatRadioModule, MatSidenavModule, MatToolbarModule
+    MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, 
+    MatInputModule, MatListModule, MatMenuModule, MatRadioModule, 
+    MatSidenavModule, MatToolbarModule, MatSelectModule
 } from '@angular/material';
 
 import { FuseSharedModule } from '@fuse/shared.module';
@@ -10,6 +12,10 @@ import { FuseSharedModule } from '@fuse/shared.module';
 import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 import { NegotiationComponent } from 'app/main/negotiation/negotiation.component';
 import { NegotiationViewComponent } from 'app/main/negotiation/negotiation-view/negotiation-view.component';
+import { ScenarioFactoryService } from './factories/scenario-factory.service';
+import { NormFactoryService } from './factories/norm-factory.service';
+import { EnumToArrayPipe } from '../enumToArray.pipe';
+import { NegotiationInputComponent } from './negotiation-view/negotiation-input/negotiation-input.component';
 
 const routes: Routes = [
     {
@@ -26,6 +32,8 @@ const routes: Routes = [
     declarations: [
         NegotiationComponent,
         NegotiationViewComponent,
+        NegotiationInputComponent,
+        EnumToArrayPipe
     ],
     imports     : [
         RouterModule.forChild(routes),
@@ -40,11 +48,13 @@ const routes: Routes = [
         MatRadioModule,
         MatSidenavModule,
         MatToolbarModule,
-
-        FuseSharedModule
+        FuseSharedModule,
+        MatSelectModule,
     ],
     providers   : [
-        NegotiationService
+        NegotiationService,
+        ScenarioFactoryService,
+        NormFactoryService
     ]
 })
 export class NegotiationModule

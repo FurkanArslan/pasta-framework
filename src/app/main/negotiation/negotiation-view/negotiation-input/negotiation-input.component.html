@@ -1,0 +1,84 @@
+<form #replyForm="ngForm" class="negotiation-input" (ngSubmit)="reply($event)" (keydown.enter)="reply($event)" fxFlex
+    fxLayout="row" fxLayoutAlign="start center">
+
+    <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mr-16 message-text">
+
+        <mat-select placeholder="Who" floatLabel="never" ngModel required name="who">
+            <mat-option *ngFor="let subject of subjects" [value]="subject">
+                {{subject}}
+            </mat-option>
+        </mat-select>
+
+    </mat-form-field>
+
+    <span> is </span>
+
+    <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
+        <mat-select placeholder="Norm" [(ngModel)]="normField" required name="norm">
+            <mat-option *ngFor="let normType of normTypes | enumToArray" [value]="normType">
+                {{normType}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+
+    <ng-container [ngSwitch]="normField">
+        <ng-container *ngSwitchCase="'Commitment'">
+            <span> to </span>
+
+            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
+                <mat-select placeholder="Someone" ngModel required name="whom">
+                    <mat-option *ngFor="let object of objects" [value]="object">
+                        {{object}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <span> to do </span>
+
+            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
+                <mat-select placeholder="What" ngModel required name="what">
+                    <mat-option *ngFor="let action of actions" [value]="action">
+                        {{action}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+            <span> by </span>
+
+            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
+                <mat-select placeholder="Whom" ngModel required name="whom">
+                    <mat-option *ngFor="let object of objects" [value]="object">
+                        {{object}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <span> from doing </span>
+
+            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
+                <mat-select placeholder="What" ngModel required name="what">
+                    <mat-option *ngFor="let action of actions" [value]="action">
+                        {{action}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </ng-container>
+
+        <span> under </span>
+
+        <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="ml-16 message-text">
+            <mat-select placeholder="Condition" ngModel required name="condition">
+                <mat-option *ngFor="let condition of conditions" [value]="condition">
+                    {{condition}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+    </ng-container>
+
+
+    <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">
+        <mat-icon class="secondary-text">send</mat-icon>
+    </button>
+</form>
