@@ -106,7 +106,7 @@ export class NegotiationInputComponent implements OnInit {
     private getNorm(): Norm {
         const values = this.replyForm.value;
 
-        return this.normFactoryService.getNorm(values.norm, values.who, values.whom, values.conditions, values.what);
+        return this.normFactoryService.getNorm(values.norm, values.who, values.whom, values.condition, values.what);
     }
 
 }

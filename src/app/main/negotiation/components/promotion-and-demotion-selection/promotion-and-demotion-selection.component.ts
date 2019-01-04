@@ -4,6 +4,8 @@ import { Negotiation } from '../../models/negotiation.model';
 import { NegotiationPhrase } from '../../models/negotiation-phrases.model';
 import { Bid } from '../../models/bid.model';
 
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+
 @Component({
     selector: 'app-promotion-and-demotion-selection',
     templateUrl: './promotion-and-demotion-selection.component.html',
@@ -20,7 +22,11 @@ export class PromotionAndDemotionSelectionComponent implements OnInit {
 
     private currentBid: Bid;
 
-    constructor() { }
+    private bidsCollection$: AngularFirestoreCollection<Bid>;
+
+    constructor(private afs: AngularFirestore) {
+        this.bidsCollection$ = this.afs.collection<Bid>('bids');
+    }
 
     ngOnInit(): void {
         this.currentBid = this.negotiation.bids[this.negotiation.bids.length - 1];
@@ -29,14 +35,10 @@ export class PromotionAndDemotionSelectionComponent implements OnInit {
     reply(event): void {
         event.preventDefault();
 
-        this.setDemotesAndPromotes(this.replyForm.form.value);
+        this.currentBid.promotes = this.replyForm.form.value.promotes;
+        this.currentBid.demotes = this.replyForm.form.value.demotes;
+
+        const convertedData = JSON.parse(JSON.stringify(this.currentBid));
+        this.bidsCollection$.add(convertedData);
     }
-
-    private setDemotesAndPromotes(values: any): any {
-        this.currentBid.promotes = values.promotes;
-        this.currentBid.demotes = values.demotes;
-
-        console.log(this.currentBid);
-    }
-
 }

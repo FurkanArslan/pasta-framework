@@ -29,7 +29,9 @@
                         "styles": [
                             "src/styles.scss"
                         ],
-                        "scripts": [],
+                        "scripts": [
+                            "../node_modules/typestate/dist/typestate-1.0.6.d.ts"
+                        ],
                         "showCircularDependencies": false
                     },
                     "configurations": {
