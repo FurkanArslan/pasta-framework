@@ -10,8 +10,8 @@ export class PhScenario extends Scenario {
         return {
             subject: [`One ${selectedRole}`, `All ${selectedRole}`],
             object: selectedRole === this.role1 ? [this.role2] : [this.role1],
-            actions: ['Access Data', 'Share Data'],
-            conditions: []
+            actions: ['accessing data', 'sharing data'],
+            conditions: ['true', 'consent', 'not consent', 'case', 'involves', 'national security']
         };
     }
 }

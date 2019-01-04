@@ -11,20 +11,24 @@ import { FuseSharedModule } from '@fuse/shared.module';
 
 import { NegotiationService } from 'app/main/negotiation/negotiation.service';
 import { NegotiationComponent } from 'app/main/negotiation/negotiation.component';
-import { NegotiationViewComponent } from 'app/main/negotiation/negotiation-view/negotiation-view.component';
 import { ScenarioFactoryService } from './factories/scenario-factory.service';
 import { NormFactoryService } from './factories/norm-factory.service';
 import { EnumToArrayPipe } from '../enumToArray.pipe';
-import { NegotiationInputComponent } from './negotiation-view/negotiation-input/negotiation-input.component';
+
+// Components
+import { NegotiationViewComponent } from './components/negotiation-view/negotiation-view.component';
+import { NegotiationInputComponent } from './components/negotiation-input/negotiation-input.component';
+import { BidGenerationComponent } from './components/bid-generation/bid-generation.component';
+import { PromotionAndDemotionSelectionComponent } from './components/promotion-and-demotion-selection/promotion-and-demotion-selection.component';
 
 const routes: Routes = [
     {
-        path: '**',
+        path: '',
         component: NegotiationComponent,
-        children: [],
-        // resolve: {
-        //     chat: NegotiationService
-        // }
+        children: [
+            { path: '', component: NegotiationViewComponent },
+            { path: 'bid-generation', component: BidGenerationComponent },
+        ]
     }
 ];
 
@@ -33,6 +37,8 @@ const routes: Routes = [
         NegotiationComponent,
         NegotiationViewComponent,
         NegotiationInputComponent,
+        BidGenerationComponent,
+        PromotionAndDemotionSelectionComponent,
         EnumToArrayPipe
     ],
     imports     : [
@@ -49,7 +55,7 @@ const routes: Routes = [
         MatSidenavModule,
         MatToolbarModule,
         FuseSharedModule,
-        MatSelectModule,
+        MatSelectModule
     ],
     providers   : [
         NegotiationService,

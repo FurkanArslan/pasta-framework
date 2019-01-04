@@ -1,0 +1,30 @@
+<form #replyForm="ngForm" (ngSubmit)="reply($event)" (keydown.enter)="reply($event)" fxLayout="row" fxFlex
+    fxLayoutAlign="space-evenly center">
+
+    <section fxFlex="35" fxLayout="row" fxLayoutAlign="start center">
+        <label fxFlex="25" class="mat-caption"> The bid promotes these values: </label>
+        <mat-form-field floatLabel="never" appearance="standard" fxFlex fxFlexOffset="5">
+            <mat-select placeholder="promotes" ngModel name="promotes" multiple>
+                <mat-option *ngFor="let value of values" [value]="value">
+                    {{value}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </section>
+
+    <section fxFlex="35" fxLayout="row" fxLayoutAlign="start center">
+        <label fxFlex="25" class="mat-caption"> The bid demotes these values: </label>
+        <mat-form-field floatLabel="never" appearance="standard" fxFlex fxFlexOffset="5">
+            <mat-select placeholder="demotes" ngModel name="demotes" multiple>
+                <mat-option *ngFor="let value of values" [value]="value">
+                    {{value}}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </section>
+
+
+    <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">
+        <mat-icon class="secondary-text">send</mat-icon>
+    </button>
+</form>

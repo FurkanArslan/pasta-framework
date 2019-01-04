@@ -1,19 +1,16 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
 import { NegotiationService } from 'app/main/negotiation/negotiation.service';
-import { Message } from '../models/message.model';
-import { User } from '../models/user.model';
-import { NegotiationPhrase, NegotiationPhrases } from '../models/negotiation-phrases.model';
-import { Negotiation } from '../models/negotiation.model';
-import { Roles } from '../models/roles.enum';
-import { ScenarioFactoryService } from '../factories/scenario-factory.service';
+import { Message } from '../../models/message.model';
+import { User } from '../../models/user.model';
+import { NegotiationPhrases, NegotiationPhrase } from '../../models/negotiation-phrases.model';
+import { Negotiation } from '../../models/negotiation.model';
+import { ScenarioFactoryService } from '../../factories/scenario-factory.service';
 import { isNull } from 'util';
-import { NormTypes } from '../models/norm/norm-types.enum';
 
 @Component({
     selector: 'negotiation-view',
@@ -24,7 +21,7 @@ import { NormTypes } from '../models/norm/norm-types.enum';
 export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewInit {
     chat: any;
     negotiation: Negotiation;
-    negotiationPhrases = NegotiationPhrase;
+    negotiationPhrases = NegotiationPhrases;
 
     simulator: User;
 
@@ -42,7 +39,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     // Private
     private _unsubscribeAll: Subject<any>;
-    private _phrase: NegotiationPhrase;
+    private _phrase: NegotiationPhrases;
 
     /**
      * Constructor
@@ -58,7 +55,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
-        this._phrase = NegotiationPhrase.WELCOME;
+        this._phrase = NegotiationPhrases.WELCOME;
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -102,7 +99,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.createAutomatedMessage('I am the Simulator');
         this.createAutomatedMessage('I will guide you during simulation.');
 
-        this._phrase = NegotiationPhrase.SCENARIO_SELECTION;
+        this._phrase = NegotiationPhrases.SCENARIO_SELECTION;
         this.createAutomatedMessage('There are three available scenario in our simulation. Type between 1-3 to choice scenario.');
 
         this.replyInput = this.replyInputField.first.nativeElement;
@@ -217,10 +214,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.negotiation.dialogs.push(message);
 
         switch (this._phrase) {
-            case NegotiationPhrase.SCENARIO_SELECTION: {
+            case NegotiationPhrases.SCENARIO_SELECTION: {
                 this.setScenario(this.replyForm.form.value.message); break;
             }
-            case NegotiationPhrase.ROLE_SELECTION: {
+            case NegotiationPhrases.ROLE_SELECTION: {
                 this.setRole(this.replyForm.form.value.message); break;
             }
         }
@@ -240,7 +237,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.negotiation.scenario = scenario;
 
             this.createAutomatedMessage(`${selectedScenario} is good choice sir/madam`);
-            this._phrase = NegotiationPhrase.ROLE_SELECTION;
+            this._phrase = NegotiationPhrases.ROLE_SELECTION;
             this.showOptionsForRoleSelection();
 
         } else {
@@ -267,7 +264,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             }
 
             this.createAutomatedMessage(`You selected ${this.negotiation.user.role} role`);
-            this._phrase = NegotiationPhrase.FIRST_OFFER;
+            this._phrase = NegotiationPhrases.FIRST_OFFER;
         }
     }
 }

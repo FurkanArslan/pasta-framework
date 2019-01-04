@@ -22,7 +22,7 @@
     </mat-form-field>
 
     <ng-container [ngSwitch]="normField">
-        <ng-container *ngSwitchCase="'Commitment'">
+        <ng-container *ngSwitchCase="normTypes.COM">
             <span> to </span>
 
             <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
@@ -54,7 +54,7 @@
                 </mat-select>
             </mat-form-field>
 
-            <span> from doing </span>
+            <span> from </span>
 
             <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
                 <mat-select placeholder="What" ngModel required name="what">
@@ -77,7 +77,9 @@
 
     </ng-container>
 
-
+    <button class="add-message-button" mat-icon-button (click)="addMessage($event)" aria-label="Add message">
+        <mat-icon class="secondary-text">add_comment</mat-icon>
+    </button>
     <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">
         <mat-icon class="secondary-text">send</mat-icon>
     </button>

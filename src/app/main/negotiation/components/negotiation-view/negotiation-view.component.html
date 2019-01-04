@@ -84,7 +84,8 @@
         <!-- REPLY FORM -->
         <div class="reply-form" fxFlex="0 0 auto" fxLayout="row" fxLayoutAlign="center center" [ngSwitch]="_phrase">
 
-            <app-negotiation-input *ngSwitchCase="negotiationPhrases.FIRST_OFFER" [negotiation]="negotiation">
+            <app-negotiation-input *ngSwitchCase="negotiationPhrases.FIRST_OFFER"
+                [negotiation]="negotiation" [(phrase)]="_phrase">
 
             </app-negotiation-input>
 
