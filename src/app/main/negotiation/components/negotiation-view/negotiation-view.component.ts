@@ -11,6 +11,13 @@ import { NegotiationPhrases, NegotiationPhrase } from '../../models/negotiation-
 import { Negotiation } from '../../models/negotiation.model';
 import { ScenarioFactoryService } from '../../factories/scenario-factory.service';
 import { isNull } from 'util';
+import { PredicateRevision } from '../../models/strategies/bid-generation/predicate-revision';
+import { Bid } from '../../models/bid.model';
+import { Norm } from '../../models/norm/norm.model';
+import { Roles } from '../../models/roles.enum';
+import { Authorization } from '../../models/norm/authorization.model';
+
+import { DirectedGraph } from '@stugotech/directed-graph';
 
 @Component({
     selector: 'negotiation-view',
@@ -50,8 +57,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         private _chatService: NegotiationService,
         private scenarioFactory: ScenarioFactoryService
     ) {
-        this.negotiation = new Negotiation('111', new User('2', 'Furkan'));
-        this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
+        this.negotiation = new Negotiation('111', new User('2', 'Furkan', null, Roles.POLICE));
+        this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png', Roles.HOSPITAL);
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
@@ -77,6 +84,54 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.readyToReply();
         //         }
         //     });
+
+        const aa = new PredicateRevision();
+        const bb = [
+
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization('Police', 'Hospital', 'aa', 'access_patient_data')
+                ]),
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+                    new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
+                ]),
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+                    new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+                ]),
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
+                    new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+                ]),
+        ];
+
+        const initial_bid = new Bid(
+            this.negotiation.user,
+            this.simulator,
+            [
+                new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+                new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
+            ]);
+        const cc = aa.getBidOptions(bb, initial_bid);
+
+        const graph = new DirectedGraph<Bid>();
+
+        cc.forEach(bid_ => graph.addEdge(initial_bid, bid_));
+        
+        console.log(cc);
+        console.log(graph.getAdjacencyToNode(initial_bid));
     }
 
     /**

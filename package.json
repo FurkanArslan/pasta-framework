@@ -38,6 +38,7 @@
     "@ngrx/store": "6.1.2",
     "@ngrx/store-devtools": "6.1.2",
     "@ngx-translate/core": "11.0.1",
+    "@stugotech/directed-graph": "^1.1.1",
     "@swimlane/dragula": "3.7.3",
     "@swimlane/ngx-charts": "10.0.0",
     "@swimlane/ngx-datatable": "14.0.0",

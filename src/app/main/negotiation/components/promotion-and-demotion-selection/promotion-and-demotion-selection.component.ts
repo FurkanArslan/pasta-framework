@@ -5,6 +5,7 @@ import { NegotiationPhrase } from '../../models/negotiation-phrases.model';
 import { Bid } from '../../models/bid.model';
 
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+import { Value } from '../../models/value.model';
 
 @Component({
     selector: 'app-promotion-and-demotion-selection',
@@ -23,9 +24,11 @@ export class PromotionAndDemotionSelectionComponent implements OnInit {
     private currentBid: Bid;
 
     private bidsCollection$: AngularFirestoreCollection<Bid>;
+    private valuesCollection$: AngularFirestoreCollection<Value>;
 
     constructor(private afs: AngularFirestore) {
         this.bidsCollection$ = this.afs.collection<Bid>('bids');
+        this.valuesCollection$ = this.afs.collection<Value>('values');
     }
 
     ngOnInit(): void {
