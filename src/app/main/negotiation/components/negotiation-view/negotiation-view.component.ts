@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, from } from 'rxjs';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
@@ -16,8 +16,7 @@ import { Bid } from '../../models/bid.model';
 import { Norm } from '../../models/norm/norm.model';
 import { Roles } from '../../models/roles.enum';
 import { Authorization } from '../../models/norm/authorization.model';
-
-import { DirectedGraph } from '@stugotech/directed-graph';
+import { DirectedGraph } from '../../models/graph.model';
 
 @Component({
     selector: 'negotiation-view',
@@ -84,7 +83,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.readyToReply();
         //         }
         //     });
+        this.test();
+    }
 
+    test(): void {
         const aa = new PredicateRevision();
         const bb = [
 
@@ -128,10 +130,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         const graph = new DirectedGraph<Bid>();
 
-        cc.forEach(bid_ => graph.addEdge(initial_bid, bid_));
-        
+        cc.forEach(bid_ => {
+            graph.addEdge(initial_bid, bid_);
+        });
+
         console.log(cc);
-        console.log(graph.getAdjacencyToNode(initial_bid));
+        console.log(graph.getAdjacencyToNode(cc[0]));
     }
 
     /**
