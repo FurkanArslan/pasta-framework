@@ -17,6 +17,8 @@ import { Norm } from '../../models/norm/norm.model';
 import { Roles } from '../../models/roles.enum';
 import { Authorization } from '../../models/norm/authorization.model';
 import { DirectedGraph } from '../../models/graph.model';
+import { NormExtension } from '../../models/strategies/bid-generation/norm-extension';
+import { Commitment } from '../../models/norm/commitment.model';
 
 @Component({
     selector: 'negotiation-view',
@@ -87,43 +89,44 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     test(): void {
-        const aa = new PredicateRevision();
+        const aa = new NormExtension();
         const bb = [
 
             new Bid(
                 this.negotiation.user,
                 this.simulator,
                 [
-                    new Authorization('Police', 'Hospital', 'aa', 'access_patient_data')
+                    new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
+                    new Authorization('Police', 'Hospital', 'involves', 'access_patient_data'),
+                    new Commitment('Police', 'Hospital', 'involves', 'access_patient_data')
                 ]),
             new Bid(
                 this.negotiation.user,
                 this.simulator,
                 [
-                    new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
-                    new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
+                    new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
                 ]),
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
-                    new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-                ]),
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
-                    new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-                ]),
+            // new Bid(
+            //     this.negotiation.user,
+            //     this.simulator,
+            //     [
+            //         new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+            //     ]),
+            // new Bid(
+            //     this.negotiation.user,
+            //     this.simulator,
+            //     [
+            //         new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
+            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+            //     ]),
         ];
 
         const initial_bid = new Bid(
             this.negotiation.user,
             this.simulator,
             [
-                new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+                new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
                 new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
             ]);
         const cc = aa.getBidOptions(bb, initial_bid);
@@ -135,7 +138,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         });
 
         console.log(cc);
-        console.log(graph.getAdjacencyToNode(cc[0]));
+        console.log(graph.getAdjacencyToNode(initial_bid));
     }
 
     /**
