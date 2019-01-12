@@ -7,6 +7,11 @@ import { Bid } from '../../models/bid.model';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
+import { AngularFirestoreCollection, AngularFirestore } from '@angular/fire/firestore';
+import { RolesData, DataBase, ConditionsData } from '../../models/data';
+import { Data } from '@angular/router';
+import { Observable } from 'rxjs/Observable';
+import { Subscription, forkJoin, zip } from 'rxjs';
 
 @Component({
     selector: 'app-negotiation-input',
@@ -18,48 +23,58 @@ export class NegotiationInputComponent implements OnInit {
     @Input() negotiation: Negotiation;
     @Input() phrase: NegotiationPhrase;
 
-    subjects: string[];
-    objects: string[];
-    actions: string[];
-    conditions: string[];
-    normField = '';
-
     normTypes = NormTypes;
+
+    roles$: Observable<RolesData[]>;
+    conditions$: Observable<ConditionsData[]>;
+
+    consequent: string[] = [];
 
     @ViewChild('replyForm')
     replyForm: NgForm;
 
     private currentBid: Bid;
+    private subscription: Subscription;
 
     constructor(
-        private normFactoryService: NormFactoryService
+        private normFactoryService: NormFactoryService,
+        private afs: AngularFirestore
     ) {
+        this.subscription = new Subscription();
     }
 
     ngOnInit(): void {
-        this.currentBid = new Bid(this.negotiation.user, this.negotiation.agent);
-        const options = this.negotiation.scenario.getOptions(this.negotiation.user.role);
+        this.roles$ = this.afs.collection<RolesData>('roles').valueChanges();
+        this.conditions$ = this.afs.collection<ConditionsData>('conditions').valueChanges();
 
-        this.subjects = options.subject;
-        this.objects = options.object;
-        this.actions = options.actions;
-        this.conditions = options.conditions;
+        const zippedCollections$ = zip(
+            this.afs.collection<DataBase>('actions').valueChanges(),
+            this.afs.collection<Data>('data').valueChanges())
+            .subscribe(results => {
+                const actions = results[0];
+                const data = results[1];
+
+                actions.forEach(action => data.forEach(data_ => this.consequent.push(`${action.name} ${data_.name}`)));
+            });
+
+        this.currentBid = new Bid(this.negotiation.user, this.negotiation.agent);
+
+        this.subscription.add(zippedCollections$);
     }
 
-    reply(event): void {
+    sendBid(event): void {
         event.preventDefault();
 
         if (this.replyForm.valid) {
-            // Add the message to the chat
-            const message = this.getMessage();
-            this.createMessage(message);
-
             // Add the norm to the bid
             const norm = this.getNorm();
             this.currentBid.consistOf.push(norm);
 
-            this.negotiation.bids.push(this.currentBid);
-            this.phrase.changePhrase(NegotiationPhrases.AGENTS_TURN);
+            // Add the message to the chat
+            this.createMessage(norm.toString());
+
+            // this.negotiation.bids.push(this.currentBid);
+            // this.phrase.changePhrase(NegotiationPhrases.AGENTS_TURN);
         }
     }
 
@@ -67,15 +82,12 @@ export class NegotiationInputComponent implements OnInit {
         event.preventDefault();
 
         if (this.replyForm.valid) {
-            // Add the message to the chat
-            const message = this.getMessage();
-            this.createMessage(message);
-
             // Add the norm to the bid
             const norm = this.getNorm();
             this.currentBid.consistOf.push(norm);
 
-            this.createMessage('And');
+            // Add the message to the chat
+            this.createMessage(norm.toString());
         }
     }
 
@@ -90,23 +102,10 @@ export class NegotiationInputComponent implements OnInit {
         this.negotiation.dialogs.push(newMessage);
     }
 
-    private getMessage(): string {
-        const values = this.replyForm.value;
-        let message = `${values.who} is ${values.norm}`;
-
-        if (values.norm === NormTypes.COM) {
-            message += ` to ${values.whom} to do ${values.what} under ${values.condition}`;
-        } else {
-            message += ` by ${values.whom} from ${values.what} under ${values.condition}`;
-        }
-
-        return message;
-    }
-
     private getNorm(): Norm {
         const values = this.replyForm.value;
 
-        return this.normFactoryService.getNorm(values.norm, values.who, values.whom, values.condition, values.what);
+        return this.normFactoryService.getNorm(values.norm, values.subject, this.negotiation.agent.name, values.condition, values.what);
     }
 
 }

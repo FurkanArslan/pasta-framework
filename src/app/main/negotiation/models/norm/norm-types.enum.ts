@@ -1,5 +1,5 @@
 export enum NormTypes {
-    AUTH = 'authorized',
-    PRO = 'prohibited',
-    COM = 'committed'
+    AUTH = 'may',
+    PRO = 'should not',
+    COM = 'should'
 }

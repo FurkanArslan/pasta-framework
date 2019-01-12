@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Subject, from } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
@@ -11,9 +11,7 @@ import { NegotiationPhrases, NegotiationPhrase } from '../../models/negotiation-
 import { Negotiation } from '../../models/negotiation.model';
 import { ScenarioFactoryService } from '../../factories/scenario-factory.service';
 import { isNull } from 'util';
-import { PredicateRevision } from '../../models/strategies/bid-generation/predicate-revision';
 import { Bid } from '../../models/bid.model';
-import { Norm } from '../../models/norm/norm.model';
 import { Roles } from '../../models/roles.enum';
 import { Authorization } from '../../models/norm/authorization.model';
 import { DirectedGraph } from '../../models/graph.model';
@@ -30,6 +28,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     chat: any;
     negotiation: Negotiation;
     negotiationPhrases = NegotiationPhrases;
+    negotiationPhrase: NegotiationPhrase;
 
     simulator: User;
 
@@ -47,7 +46,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     // Private
     private _unsubscribeAll: Subject<any>;
-    private _phrase: NegotiationPhrases;
+    // private _phrase: NegotiationPhrases;
 
     /**
      * Constructor
@@ -59,11 +58,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         private scenarioFactory: ScenarioFactoryService
     ) {
         this.negotiation = new Negotiation('111', new User('2', 'Furkan', null, Roles.POLICE));
-        this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png', Roles.HOSPITAL);
+        this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
+
+        this.negotiation.agent = new User('2', 'Hospital Administration', null, Roles.HOSPITAL);
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
-        this._phrase = NegotiationPhrases.WELCOME;
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -74,72 +74,71 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * On init
      */
     ngOnInit(): void {
-        // this._chatService.onChatSelected
-        //     .pipe(takeUntil(this._unsubscribeAll))
-        //     .subscribe(chatData => {
-        //         if ( chatData )
-        //         {
-        // this.selectedChat = chatData;
-        // this.contact = chatData.contact;
-        // this.dialog = chatData.dialog;
         this.readyToReply();
-        //         }
-        //     });
-        this.test();
+
+        this.negotiationPhrase = new NegotiationPhrase();
+
+        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.WELCOME, this.onWelcome, this);
+        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.SCENARIO_SELECTION, this.onScenarioSelection, this);
+        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.ROLE_SELECTION, this.onRoleSelection, this);
+        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.AGENTS_TURN, this.onAgentTurn, this);
+        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.PREFERENCE_SELECTION, this.onPreferenceSelection, this);
+
+        // this.test();
     }
 
-    test(): void {
-        const aa = new NormExtension();
-        const bb = [
+    // test(): void {
+    //     const aa = new NormExtension();
+    //     const bb = [
 
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
-                    new Authorization('Police', 'Hospital', 'involves', 'access_patient_data'),
-                    new Commitment('Police', 'Hospital', 'involves', 'access_patient_data')
-                ]),
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
-                ]),
-            // new Bid(
-            //     this.negotiation.user,
-            //     this.simulator,
-            //     [
-            //         new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
-            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-            //     ]),
-            // new Bid(
-            //     this.negotiation.user,
-            //     this.simulator,
-            //     [
-            //         new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
-            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-            //     ]),
-        ];
+    //         new Bid(
+    //             this.negotiation.user,
+    //             this.simulator,
+    //             [
+    //                 new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
+    //                 new Authorization('Police', 'Hospital', 'involves', 'access_patient_data'),
+    //                 new Commitment('Police', 'Hospital', 'involves', 'access_patient_data')
+    //             ]),
+    //         new Bid(
+    //             this.negotiation.user,
+    //             this.simulator,
+    //             [
+    //                 new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
+    //             ]),
+    //         // new Bid(
+    //         //     this.negotiation.user,
+    //         //     this.simulator,
+    //         //     [
+    //         //         new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+    //         //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+    //         //     ]),
+    //         // new Bid(
+    //         //     this.negotiation.user,
+    //         //     this.simulator,
+    //         //     [
+    //         //         new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
+    //         //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+    //         //     ]),
+    //     ];
 
-        const initial_bid = new Bid(
-            this.negotiation.user,
-            this.simulator,
-            [
-                new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
-                new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
-            ]);
-        const cc = aa.getBidOptions(bb, initial_bid);
+    //     const initial_bid = new Bid(
+    //         this.negotiation.user,
+    //         this.simulator,
+    //         [
+    //             new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
+    //             new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
+    //         ]);
+    //     const cc = aa.getBidOptions(bb, initial_bid);
 
-        const graph = new DirectedGraph<Bid>();
+    //     const graph = new DirectedGraph<Bid>();
 
-        cc.forEach(bid_ => {
-            graph.addEdge(initial_bid, bid_);
-        });
+    //     cc.forEach(bid_ => {
+    //         graph.addEdge(initial_bid, bid_);
+    //     });
 
-        console.log(cc);
-        console.log(graph.getAdjacencyToNode(initial_bid));
-    }
+    //     console.log(cc);
+    //     console.log(graph.getAdjacencyToNode(initial_bid));
+    // }
 
     /**
      * Create Automated Message
@@ -156,16 +155,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * After view init
      */
     ngAfterViewInit(): void {
-        this.createAutomatedMessage('Hi!');
-        this.createAutomatedMessage('Welcome to our Negotiation Simulation!');
-        this.createAutomatedMessage('I am the Simulator');
-        this.createAutomatedMessage('I will guide you during simulation.');
-
-        this._phrase = NegotiationPhrases.SCENARIO_SELECTION;
-        this.createAutomatedMessage('There are three available scenario in our simulation. Type between 1-3 to choice scenario.');
-
         this.replyInput = this.replyInputField.first.nativeElement;
         this.readyToReply();
+
+        this.negotiationPhrase.changePhrase(NegotiationPhrases.WELCOME);
     }
 
     /**
@@ -275,7 +268,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         // Add the message to the chat
         this.negotiation.dialogs.push(message);
 
-        switch (this._phrase) {
+        switch (this.negotiationPhrase.phrase.currentState) {
             case NegotiationPhrases.SCENARIO_SELECTION: {
                 this.setScenario(this.replyForm.form.value.message); break;
             }
@@ -299,19 +292,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.negotiation.scenario = scenario;
 
             this.createAutomatedMessage(`${selectedScenario} is good choice sir/madam`);
-            this._phrase = NegotiationPhrases.ROLE_SELECTION;
-            this.showOptionsForRoleSelection();
+            this.negotiationPhrase.changePhrase(NegotiationPhrases.ROLE_SELECTION);
 
         } else {
             this.createAutomatedMessage('I think you selected wrong scenario, you may try once again.');
             this.readyToReply();
         }
-    }
-
-    private showOptionsForRoleSelection(): void {
-        this.createAutomatedMessage('In this scenario you can choice two different roles.');
-        this.createAutomatedMessage(`First role is ${this.negotiation.scenario.role1} and other role is ${this.negotiation.scenario.role2}.`);
-        this.createAutomatedMessage('Please choice your role by typing 1 or 2');
     }
 
     private setRole(selectedRole: string): void {
@@ -326,7 +312,35 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             }
 
             this.createAutomatedMessage(`You selected ${this.negotiation.user.role} role`);
-            this._phrase = NegotiationPhrases.FIRST_OFFER;
+            this.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
         }
+    }
+
+    private onWelcome(scope): void {
+        scope.createAutomatedMessage('Hi!');
+        scope.createAutomatedMessage('Welcome to our Negotiation Simulation!');
+        scope.createAutomatedMessage('I am the Simulator');
+        scope.createAutomatedMessage('I will guide you during simulation.');
+
+        // scope.negotiationPhrase.changePhrase(NegotiationPhrases.SCENARIO_SELECTION);
+        scope.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
+    }
+
+    private onScenarioSelection(scope): void {
+        scope.createAutomatedMessage('There are three available scenario in our simulation. Type between 1-3 to choice scenario.');
+    }
+
+    private onRoleSelection(scope): void {
+        scope.createAutomatedMessage('In this scenario you can choice two different roles.');
+        scope.createAutomatedMessage(`First role is ${scope.negotiation.scenario.role1} and other role is ${scope.negotiation.scenario.role2}.`);
+        scope.createAutomatedMessage('Please choice your role by typing 1 or 2');
+    }
+
+    private onPreferenceSelection(scope): void {
+        scope.createAutomatedMessage('Please select preferences of values:');
+    }
+
+    private onAgentTurn(scope): void {
+        // scope.negotiationPhrase.changePhrase(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);
     }
 }

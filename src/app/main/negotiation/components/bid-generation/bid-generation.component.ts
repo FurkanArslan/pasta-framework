@@ -75,8 +75,6 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.ROLE_SELECTION, this.onRoleSelection, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.AGENTS_TURN, this.onAgentTurn, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES, this.onPromoteSelection, this);
-
-        this.negotiationPhrase.changePhrase(NegotiationPhrases.WELCOME);
     }
 
     /**
@@ -96,6 +94,8 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
     ngAfterViewInit(): void {
         this.replyInput = this.replyInputField.first.nativeElement;
         this.readyToReply();
+
+        this.negotiationPhrase.changePhrase(NegotiationPhrases.WELCOME);
     }
 
     /**

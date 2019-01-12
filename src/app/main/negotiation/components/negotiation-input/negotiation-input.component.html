@@ -1,17 +1,13 @@
-<form #replyForm="ngForm" class="negotiation-input" (ngSubmit)="reply($event)" (keydown.enter)="reply($event)" fxFlex
+<form #replyForm="ngForm" class="negotiation-input" (ngSubmit)="sendBid($event)" (keydown.enter)="reply($event)" fxFlex
     fxLayout="row" fxLayoutAlign="start center">
 
     <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mr-16 message-text">
-
-        <mat-select placeholder="Who" floatLabel="never" ngModel required name="who">
-            <mat-option *ngFor="let subject of subjects" [value]="subject">
-                {{subject}}
+        <mat-select placeholder="Subject" floatLabel="never" ngModel required name="subject">
+            <mat-option *ngFor="let subject of roles$ | async" [value]="subject">
+                {{subject.name}}
             </mat-option>
         </mat-select>
-
     </mat-form-field>
-
-    <span> is </span>
 
     <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
         <mat-select placeholder="Norm" [(ngModel)]="normField" required name="norm">
@@ -21,66 +17,32 @@
         </mat-select>
     </mat-form-field>
 
-    <ng-container [ngSwitch]="normField">
-        <ng-container *ngSwitchCase="normTypes.COM">
-            <span> to </span>
+    <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
+        <mat-select placeholder="What" ngModel required name="what" multiple 
+            matTooltip="You can choice multiple action" [matTooltipPosition]="'above'">
+            <mat-option *ngFor="let consequent_ of consequent" [value]="consequent_">
+                {{consequent_}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
 
-            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
-                <mat-select placeholder="Someone" ngModel required name="whom">
-                    <mat-option *ngFor="let object of objects" [value]="object">
-                        {{object}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
+    <span> when </span>
 
-            <span> to do </span>
+    <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="ml-16 message-text">
+        <mat-select placeholder="Condition" ngModel required name="condition" multiple 
+            matTooltip="You can choice multiple condition" [matTooltipPosition]="'above'">
+            <mat-option *ngFor="let condition of conditions$ | async" [value]="condition">
+                {{condition.name}}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
 
-            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
-                <mat-select placeholder="What" ngModel required name="what">
-                    <mat-option *ngFor="let action of actions" [value]="action">
-                        {{action}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </ng-container>
-        <ng-container *ngSwitchDefault>
-            <span> by </span>
-
-            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
-                <mat-select placeholder="Whom" ngModel required name="whom">
-                    <mat-option *ngFor="let object of objects" [value]="object">
-                        {{object}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-
-            <span> from </span>
-
-            <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
-                <mat-select placeholder="What" ngModel required name="what">
-                    <mat-option *ngFor="let action of actions" [value]="action">
-                        {{action}}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </ng-container>
-
-        <span> under </span>
-
-        <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="ml-16 message-text">
-            <mat-select placeholder="Condition" ngModel required name="condition">
-                <mat-option *ngFor="let condition of conditions" [value]="condition">
-                    {{condition}}
-                </mat-option>
-            </mat-select>
-        </mat-form-field>
-
-    </ng-container>
-
-    <button class="add-message-button" mat-icon-button (click)="addMessage($event)" aria-label="Add message">
+    <button class="add-message-button" mat-stroked-button (click)="addMessage($event)" aria-label="Add message">
+        <span>Add Another</span>
         <mat-icon class="secondary-text">add_comment</mat-icon>
     </button>
-    <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">
+    <button class="send-message-button" mat-stroked-button type="submit" aria-label="Send message">
+        <span>Send</span>
         <mat-icon class="secondary-text">send</mat-icon>
     </button>
 </form>

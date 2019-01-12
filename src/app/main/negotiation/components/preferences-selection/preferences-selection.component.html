@@ -1,0 +1,16 @@
+<form #replyForm="ngForm" (ngSubmit)="reply($event)" (keydown.enter)="reply($event)" fxLayout="row" fxFlex
+    fxLayoutAlign="space-evenly center">
+
+    <section fxFlex="35" fxLayout="row" fxLayoutAlign="start center" *ngFor="let value of valuesCollection$ | async; let i=index">
+        <label fxFlex="25" class="mat-caption"> The preference of the {{value.name}} value </label>
+        
+        <mat-form-field floatLabel="never" appearance="standard" fxFlex fxFlexOffset="5">
+            <mat-slider class="example-margin" [max]="1" [min]="0" [step]="0.1" [thumbLabel]="true" [tickInterval]="'auto'" ngModel name="value.name">
+            </mat-slider>
+        </mat-form-field>
+    </section>
+
+    <button class="send-message-button" mat-icon-button type="submit" aria-label="Send message">
+        <mat-icon class="secondary-text">send</mat-icon>
+    </button>
+</form>

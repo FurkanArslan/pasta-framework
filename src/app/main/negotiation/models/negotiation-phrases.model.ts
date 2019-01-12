@@ -5,6 +5,7 @@ export enum NegotiationPhrases {
     WELCOME,
     SCENARIO_SELECTION,
     ROLE_SELECTION,
+    PREFERENCE_SELECTION,
     FIRST_OFFER,
     SELECT_DEMOTES_AND_PROMOTES,
     USER_TURN,
@@ -18,10 +19,12 @@ export class NegotiationPhrase {
         this._phrase = new typestate.FiniteStateMachine(NegotiationPhrases.INITIAL);
 
         this._phrase.from(NegotiationPhrases.INITIAL).toAny(NegotiationPhrases);
+        this._phrase.from(NegotiationPhrases.WELCOME).toAny(NegotiationPhrases);
 
-        this._phrase.from(NegotiationPhrases.WELCOME).to(NegotiationPhrases.SCENARIO_SELECTION);
-        this._phrase.from(NegotiationPhrases.SCENARIO_SELECTION).to(NegotiationPhrases.ROLE_SELECTION);
-        this._phrase.from(NegotiationPhrases.ROLE_SELECTION).to(NegotiationPhrases.FIRST_OFFER);
+        // this._phrase.from(NegotiationPhrases.SCENARIO_SELECTION).to(NegotiationPhrases.ROLE_SELECTION);
+        // this._phrase.from(NegotiationPhrases.ROLE_SELECTION).to(NegotiationPhrases.PREFERENCE_SELECTION);
+        // this._phrase.from(NegotiationPhrases.ROLE_SELECTION).to(NegotiationPhrases.FIRST_OFFER);
+        this._phrase.from(NegotiationPhrases.PREFERENCE_SELECTION).to(NegotiationPhrases.FIRST_OFFER);
 
         // Negotiation turn states
         this._phrase.from(NegotiationPhrases.FIRST_OFFER).to(NegotiationPhrases.AGENTS_TURN);

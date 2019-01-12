@@ -4,7 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import {
     MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, 
     MatInputModule, MatListModule, MatMenuModule, MatRadioModule, 
-    MatSidenavModule, MatToolbarModule, MatSelectModule
+    MatSidenavModule, MatToolbarModule, MatSelectModule, MatSliderModule, MatTooltipModule
 } from '@angular/material';
 
 import { FuseSharedModule } from '@fuse/shared.module';
@@ -20,6 +20,7 @@ import { NegotiationViewComponent } from './components/negotiation-view/negotiat
 import { NegotiationInputComponent } from './components/negotiation-input/negotiation-input.component';
 import { BidGenerationComponent } from './components/bid-generation/bid-generation.component';
 import { PromotionAndDemotionSelectionComponent } from './components/promotion-and-demotion-selection/promotion-and-demotion-selection.component';
+import { PreferencesSelectionComponent } from './components/preferences-selection/preferences-selection.component';
 
 const routes: Routes = [
     {
@@ -39,6 +40,7 @@ const routes: Routes = [
         NegotiationInputComponent,
         BidGenerationComponent,
         PromotionAndDemotionSelectionComponent,
+        // PreferencesSelectionComponent,
         EnumToArrayPipe
     ],
     imports     : [
@@ -55,7 +57,9 @@ const routes: Routes = [
         MatSidenavModule,
         MatToolbarModule,
         FuseSharedModule,
-        MatSelectModule
+        MatSelectModule,
+        MatSliderModule,
+        MatTooltipModule
     ],
     providers   : [
         NegotiationService,

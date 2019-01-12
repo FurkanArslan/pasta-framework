@@ -1,16 +1,22 @@
 
+export interface Edge<T> {
+    data: T;
+    weight: number;
+    name?: string;
+}
+
 /**
  * Represents a graph with vertices and edges.
  */
 export class DirectedGraph<T> {
-    private _edges: Map<T, T[]>;
+    private _edges: Map<T, Edge<T>[]>;
 
 
     /**
      * Create a new instance.
      */
-    constructor(edges?: Map<T, T[]>) {
-        this._edges = edges || new Map<T, T[]>();
+    constructor(edges?: Map<T, Edge<T>[]>) {
+        this._edges = edges || new Map<T, Edge<T>[]>();
     }
 
 
@@ -19,10 +25,11 @@ export class DirectedGraph<T> {
      * @param source The source of the edge.
      * @param target The target of the edge.
      */
-    addEdge(source: T, target: T): void {
+    addEdge(source: T, target: T, weight?, name?): void {
         const targets = this.addVertex(source);
         this.addVertex(target);
-        targets.push(target);
+
+        targets.push({ data: target, weight: weight || 0, name: name });
     }
 
 
@@ -30,7 +37,7 @@ export class DirectedGraph<T> {
      * Add a vertex.
      * @param vertex The vertex to add.
      */
-    addVertex(vertex: T): any {
+    addVertex(vertex: T): Edge<T>[] {
         let targets = this._edges.get(vertex);
 
         if (targets === undefined) {
@@ -45,7 +52,7 @@ export class DirectedGraph<T> {
     /**
      * Get the edges.
      */
-    edges(): Map<T, T[]> {
+    edges(): Map<T, Edge<T>[]> {
         return this._edges;
     }
 
@@ -62,9 +69,9 @@ export class DirectedGraph<T> {
      * Create a shallow copy of this graph (copies edge map only).
      */
     shallowClone(): DirectedGraph<T> {
-        const edges = [...Array.from(this._edges.entries())].map<[T, T[]]>(kv => [kv[0], [...kv[1]]]);
+        const edges = [...Array.from(this._edges.entries())].map<[T, Edge<T>[]]>(kv => [kv[0], [...kv[1]]]);
 
-        return new DirectedGraph<T>(new Map<T, T[]>(edges));
+        return new DirectedGraph<T>(new Map<T, Edge<T>[]>(edges));
     }
 
 
@@ -79,7 +86,7 @@ export class DirectedGraph<T> {
             rev.addVertex(source);
 
             for (const target of targets) {
-                rev.addEdge(target, source);
+                rev.addEdge(target.data, source, target.weight, target.name);
             }
         }
 
@@ -108,8 +115,8 @@ export class DirectedGraph<T> {
                 }
 
                 for (const child of children) {
-                    this._checkCircularReference(parents, child);
-                    recurse(child, level + 1);
+                    this._checkCircularReference(parents, child.data);
+                    recurse(child.data, level + 1);
                 }
             }
 
