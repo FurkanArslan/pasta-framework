@@ -1,65 +1,38 @@
 import { Bid } from '../../bid.model';
-import { FuseUtils } from '@fuse/utils';
 import { BidGeneration } from './bid-generation';
+import { Norm } from '../../norm/norm.model';
 
 export class PredicateRevision extends BidGeneration {
 
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
-        const optionsByAntecedentRevision = [];
-        const optionsByConsequentRevision = [];
+        const optionsByAntecedentRevision = availableBids.filter(bid_ => {
+            return bid_.consistOf.length === bid.consistOf.length && bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf, this._isSameNormExceptAntecedent, this));
+        });
 
-        for (const bid_ of availableBids) {
-            for (const norm of bid_.consistOf) {
-                for (const norm1 of bid.consistOf) {
-                    if (norm.hasSubject === norm1.hasSubject &&
-                        norm.hasObject === norm1.hasObject &&
-                        norm.normType === norm1.normType) {
+        const optionsByConsequentRevision = availableBids.filter(bid_ => {
+            return bid_.consistOf.length === bid.consistOf.length && bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf, this._isSameNormExceptConsequent, this));
+        });
 
-                        if (norm.hasConsequent === norm1.hasConsequent && norm.hasAntecedent !== norm1.hasAntecedent) {
-                            optionsByAntecedentRevision.push(bid_);
-                        }
-
-                        if (norm.hasAntecedent === norm1.hasAntecedent && norm.hasConsequent !== norm1.hasConsequent) {
-                            optionsByConsequentRevision.push(bid_);
-                        }
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        const op1 = this._getOptionsByConsequentRevision(optionsByConsequentRevision, bid);
-        const op2 = this._getOptionsByAntecedentRevision(optionsByAntecedentRevision, bid);
-
-        return op1.concat(op2);
+        return optionsByAntecedentRevision.concat(optionsByConsequentRevision);
     }
 
-    private _getOptionsByAntecedentRevision(bids: any[], other_bid: Bid): any {
-        const options: Bid[] = [];
-
-        for (const bid_ of bids) {
-            const filteredNorms = bid_.consistOf.filter(norm => !FuseUtils.searchInObj(other_bid, norm.hasAntecedent));
-
-            if (filteredNorms.length === 1) {
-                options.push(bid_);
-            }
-        }
-
-        return options;
+    protected _isInNorm(item: Norm, items2: Norm[], compareFunc, scope): boolean {
+        return items2.some(item_ => compareFunc(item_, item, scope));
     }
 
-    private _getOptionsByConsequentRevision(bids: Bid[], other_bid: Bid): Bid[] {
-        const options: Bid[] = [];
+    private _isSameNormExceptAntecedent(norm: Norm, norm1: Norm, scope): boolean {
+        return scope._isSameConsequent(norm.hasConsequent, norm1.hasConsequent) &&
+            !(scope._isSameArray(norm.hasAntecedent, norm1.hasAntecedent)) &&
+            scope._isSameItem(norm.hasSubject, norm1.hasSubject) &&
+            norm.hasObject === norm1.hasObject &&
+            norm.normType === norm1.normType;
+    }
 
-        for (const bid_ of bids) {
-            const filteredNorms = bid_.consistOf.filter(norm => !FuseUtils.searchInObj(other_bid, norm.hasConsequent));
-
-            if (filteredNorms.length === 1) {
-                options.push(bid_);
-            }
-        }
-
-        return options;
+    private _isSameNormExceptConsequent(norm: Norm, norm1: Norm, scope): boolean {
+        return !(scope._isSameConsequent(norm.hasConsequent, norm1.hasConsequent)) &&
+            scope._isSameArray(norm.hasAntecedent, norm1.hasAntecedent) &&
+            scope._isSameItem(norm.hasSubject, norm1.hasSubject) &&
+            norm.hasObject === norm1.hasObject &&
+            norm.normType === norm1.normType;
     }
 }

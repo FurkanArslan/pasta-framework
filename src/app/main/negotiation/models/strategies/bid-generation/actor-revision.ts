@@ -4,7 +4,10 @@ import { Norm } from '../../norm/norm.model';
 
 export class ActorRevision extends BidGeneration {
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
-        return availableBids.filter(bid_ => bid_.consistOf.length === bid.consistOf.length && bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf)));
+        return availableBids.filter(bid_ => {
+            return bid_.consistOf.length === bid.consistOf.length && 
+                bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf));
+        });
     }
 
     private _isInNorm(item: Norm, items2: Norm[]): boolean {

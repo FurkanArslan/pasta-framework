@@ -31,7 +31,7 @@
                         ],
                         "scripts": [
                             "node_modules/typestate/dist/typestate-1.0.6.d.ts",
-                            "node_modules/@stugotech/directed-graph/dist/lib/index.d.ts"
+                            "src/assets/graphlib/index.d.ts"
                         ],
                         "showCircularDependencies": false
                     },

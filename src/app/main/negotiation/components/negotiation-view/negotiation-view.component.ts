@@ -18,6 +18,7 @@ import { DirectedGraph } from '../../models/graph.model';
 import { NormExtension } from '../../models/strategies/bid-generation/norm-extension';
 import { Commitment } from '../../models/norm/commitment.model';
 import { ActorRevision } from '../../models/strategies/bid-generation/actor-revision';
+import { PredicateRevision } from '../../models/strategies/bid-generation/predicate-revision';
 
 @Component({
     selector: 'negotiation-view',
@@ -89,20 +90,20 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     test(): void {
-        const aa = new ActorRevision();
+        const aa = new PredicateRevision();
         const bb = [
 
             new Bid(
                 this.negotiation.user,
                 this.simulator,
                 [
-                    new Authorization({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                    new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }, { id: '2', name: 'aa' }], ['access_patient_data', 'share_patient_data']),
                 ]),
             new Bid(
                 this.negotiation.user,
                 this.simulator,
                 [
-                    new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                    new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data', 'share_patient_data']),
                 ]),
             new Bid(
                 this.negotiation.user,
@@ -131,11 +132,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.negotiation.user,
             this.simulator,
             [
-                new Authorization({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
-                new Commitment({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
             ]);
 
         const cc = aa.getBidOptions(bb, initial_bid);
+
+        console.log(cc);
 
         // const graph = new DirectedGraph<Bid>();
 
