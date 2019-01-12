@@ -1,7 +1,8 @@
 import { Bid } from '../../bid.model';
 import { FuseUtils } from '@fuse/utils';
+import { BidGeneration } from './bid-generation';
 
-export class PredicateRevision {
+export class PredicateRevision extends BidGeneration {
 
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
         const optionsByAntecedentRevision = [];

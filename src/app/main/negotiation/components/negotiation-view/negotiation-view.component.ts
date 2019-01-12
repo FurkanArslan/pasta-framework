@@ -17,6 +17,7 @@ import { Authorization } from '../../models/norm/authorization.model';
 import { DirectedGraph } from '../../models/graph.model';
 import { NormExtension } from '../../models/strategies/bid-generation/norm-extension';
 import { Commitment } from '../../models/norm/commitment.model';
+import { ActorRevision } from '../../models/strategies/bid-generation/actor-revision';
 
 @Component({
     selector: 'negotiation-view',
@@ -84,61 +85,67 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.AGENTS_TURN, this.onAgentTurn, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.PREFERENCE_SELECTION, this.onPreferenceSelection, this);
 
-        // this.test();
+        this.test();
     }
 
-    // test(): void {
-    //     const aa = new NormExtension();
-    //     const bb = [
+    test(): void {
+        const aa = new ActorRevision();
+        const bb = [
 
-    //         new Bid(
-    //             this.negotiation.user,
-    //             this.simulator,
-    //             [
-    //                 new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
-    //                 new Authorization('Police', 'Hospital', 'involves', 'access_patient_data'),
-    //                 new Commitment('Police', 'Hospital', 'involves', 'access_patient_data')
-    //             ]),
-    //         new Bid(
-    //             this.negotiation.user,
-    //             this.simulator,
-    //             [
-    //                 new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
-    //             ]),
-    //         // new Bid(
-    //         //     this.negotiation.user,
-    //         //     this.simulator,
-    //         //     [
-    //         //         new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
-    //         //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-    //         //     ]),
-    //         // new Bid(
-    //         //     this.negotiation.user,
-    //         //     this.simulator,
-    //         //     [
-    //         //         new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
-    //         //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-    //         //     ]),
-    //     ];
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                ]),
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                ]),
+            new Bid(
+                this.negotiation.user,
+                this.simulator,
+                [
+                    new Authorization({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                    new Commitment({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                ]),
+            // new Bid(
+            //     this.negotiation.user,
+            //     this.simulator,
+            //     [
+            //         new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
+            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+            //     ]),
+            // new Bid(
+            //     this.negotiation.user,
+            //     this.simulator,
+            //     [
+            //         new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
+            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
+            //     ]),
+        ];
 
-    //     const initial_bid = new Bid(
-    //         this.negotiation.user,
-    //         this.simulator,
-    //         [
-    //             new Authorization('Police', 'Hospital', 'aa', 'access_patient_data'),
-    //             new Authorization('Police', 'Hospital', 'involves', 'access_patient_data')
-    //         ]);
-    //     const cc = aa.getBidOptions(bb, initial_bid);
+        const initial_bid = new Bid(
+            this.negotiation.user,
+            this.simulator,
+            [
+                new Authorization({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+                new Commitment({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
+            ]);
 
-    //     const graph = new DirectedGraph<Bid>();
+        const cc = aa.getBidOptions(bb, initial_bid);
 
-    //     cc.forEach(bid_ => {
-    //         graph.addEdge(initial_bid, bid_);
-    //     });
+        // const graph = new DirectedGraph<Bid>();
 
-    //     console.log(cc);
-    //     console.log(graph.getAdjacencyToNode(initial_bid));
-    // }
+        // cc.forEach(bid_ => {
+        //     graph.addEdge(initial_bid, bid_);
+        // });
+
+        // console.log(cc);
+        // console.log(graph.getAdjacencyToNode(initial_bid));
+    }
 
     /**
      * Create Automated Message

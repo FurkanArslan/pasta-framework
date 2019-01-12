@@ -73,8 +73,8 @@ export class NegotiationInputComponent implements OnInit {
             // Add the message to the chat
             this.createMessage(norm.toString());
 
-            // this.negotiation.bids.push(this.currentBid);
-            // this.phrase.changePhrase(NegotiationPhrases.AGENTS_TURN);
+            this.negotiation.bids.push(this.currentBid);
+            this.phrase.changePhrase(NegotiationPhrases.AGENTS_TURN);
         }
     }
 

@@ -2,7 +2,7 @@ import { BidGeneration } from './bid-generation';
 import { Bid } from '../../bid.model';
 import { Norm } from '../../norm/norm.model';
 
-export class NormExtension implements BidGeneration {
+export class NormExtension extends BidGeneration {
     getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
         const optionsByNormExtension = [];
         const optionsByNormRemoving = [];
@@ -25,10 +25,10 @@ export class NormExtension implements BidGeneration {
     }
 
     private _includes(norms1: Norm[], norms2: Norm[]): boolean {
-        return norms1.every(norm_ => this._isInArray(norm_, norms2));
+        return norms1.every(norm_ => this._isInArray1(norm_, norms2));
     }
 
-    private _isInArray(norm: Norm, norms2: Norm[]): boolean {
+    private _isInArray1(norm: Norm, norms2: Norm[]): boolean {
         return norms2.some(norm_ => this._isSameNorm(norm_, norm));
     }
 
