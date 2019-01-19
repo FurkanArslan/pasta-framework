@@ -57,7 +57,7 @@ export class NegotiationInputComponent implements OnInit {
                 actions.forEach(action => data.forEach(data_ => this.consequent.push(`${action.name} ${data_.name}`)));
             });
 
-        this.currentBid = new Bid(this.negotiation.user, this.negotiation.agent);
+        this.currentBid = new Bid(this.afs.createId(), this.negotiation.user, this.negotiation.agent);
 
         this.subscription.add(zippedCollections$);
     }

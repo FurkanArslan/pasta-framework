@@ -21,11 +21,11 @@
 
                     <div class="avatar-wrapper">
 
-                        <img [src]="simulator.avatar" class="avatar" alt="{{simulator.name}}" />
+                        <img [src]="hospital.avatar" class="avatar" alt="{{hospital.name}}" />
                     </div>
 
                     <div class="chat-contact-name">
-                        {{simulator.name}}
+                        {{hospital.name}}
                     </div>
 
                 </div>
@@ -62,7 +62,7 @@
                             'last-of-group': isLastMessageOfGroup(message, i)
                             }">
 
-                <img *ngIf="shouldShowContactAvatar(message, i)" src="{{simulator.avatar}}" class="avatar">
+                <img *ngIf="shouldShowContactAvatar(message, i)" src="{{hospital.avatar}}" class="avatar">
 
                 <div class="bubble">
                     <div class="message">{{message.message}}</div>

@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
@@ -10,7 +10,7 @@ import { User } from '../../models/user.model';
 import { NegotiationPhrases, NegotiationPhrase } from '../../models/negotiation-phrases.model';
 import { Negotiation } from '../../models/negotiation.model';
 import { ScenarioFactoryService } from '../../factories/scenario-factory.service';
-import { isNull } from 'util';
+import { isNull, isNullOrUndefined } from 'util';
 import { Bid } from '../../models/bid.model';
 import { Roles } from '../../models/roles.enum';
 import { Authorization } from '../../models/norm/authorization.model';
@@ -19,6 +19,12 @@ import { NormExtension } from '../../models/strategies/bid-generation/norm-exten
 import { Commitment } from '../../models/norm/commitment.model';
 import { ActorRevision } from '../../models/strategies/bid-generation/actor-revision';
 import { PredicateRevision } from '../../models/strategies/bid-generation/predicate-revision';
+import { Value } from '../../models/value.model';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+import { take } from 'rxjs/operators';
+import { last } from '@angular/router/src/utils/collection';
+import { UniformCostSearch } from '../../models/ucs.model';
+import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
 
 @Component({
     selector: 'negotiation-view',
@@ -33,6 +39,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     negotiationPhrase: NegotiationPhrase;
 
     simulator: User;
+    hospital: User;
 
     replyInput: any;
     selectedChat: any;
@@ -48,7 +55,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     // Private
     private _unsubscribeAll: Subject<any>;
-    // private _phrase: NegotiationPhrases;
+    private bids: Bid[] = [];
 
     /**
      * Constructor
@@ -57,12 +64,14 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      */
     constructor(
         private _chatService: NegotiationService,
-        private scenarioFactory: ScenarioFactoryService
+        private scenarioFactory: ScenarioFactoryService,
+        private afs: AngularFirestore
     ) {
-        this.negotiation = new Negotiation('111', new User('2', 'Furkan', null, Roles.POLICE));
+        const user = new User('3', 'Furkan', null, Roles.POLICE);
+        this.hospital = new User('2', 'Hospital Administration', 'assets/images/avatars/Josefina.jpg', Roles.HOSPITAL);
         this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
 
-        this.negotiation.agent = new User('2', 'Hospital Administration', null, Roles.HOSPITAL);
+        this.negotiation = new Negotiation('111', user, this.hospital);
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
@@ -86,67 +95,22 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.AGENTS_TURN, this.onAgentTurn, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.PREFERENCE_SELECTION, this.onPreferenceSelection, this);
 
-        this.test();
-    }
+        this.afs.collection<Value>('values').valueChanges().subscribe((values: Value[]) => {
+            values.forEach(value => {
+                switch (value.name) {
+                    case 'Privacy': value.weight = 0.7; break;
+                    // case 'Security': 
+                    // case 'Safety': value.weight = 0.2; break;
+                    default: value.weight = 0.1;
+                }
+            });
 
-    test(): void {
-        const aa = new PredicateRevision();
-        const bb = [
+            this.negotiation.agent.preferences = values;
+        });
 
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }, { id: '2', name: 'aa' }], ['access_patient_data', 'share_patient_data']),
-                ]),
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data', 'share_patient_data']),
-                ]),
-            new Bid(
-                this.negotiation.user,
-                this.simulator,
-                [
-                    new Authorization({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
-                    new Commitment({ id: '1', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
-                ]),
-            // new Bid(
-            //     this.negotiation.user,
-            //     this.simulator,
-            //     [
-            //         new Authorization('Police', 'Hospital', 'consent', 'access_patient_data'),
-            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-            //     ]),
-            // new Bid(
-            //     this.negotiation.user,
-            //     this.simulator,
-            //     [
-            //         new Authorization('Police', 'Hospital', 'ahmet', 'access_patient_data'),
-            //         new Authorization('Police', 'Hospital', 'national_security', 'access_patient_data')
-            //     ]),
-        ];
-
-        const initial_bid = new Bid(
-            this.negotiation.user,
-            this.simulator,
-            [
-                new Authorization({ id: '2', name: 'Police' }, 'Hospital', [{ id: '1', name: 'aa' }], ['access_patient_data']),
-            ]);
-
-        const cc = aa.getBidOptions(bb, initial_bid);
-
-        console.log(cc);
-
-        // const graph = new DirectedGraph<Bid>();
-
-        // cc.forEach(bid_ => {
-        //     graph.addEdge(initial_bid, bid_);
-        // });
-
-        // console.log(cc);
-        // console.log(graph.getAdjacencyToNode(initial_bid));
+        this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
+            this.bids = bids_;
+        });
     }
 
     /**
@@ -351,5 +315,46 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     private onAgentTurn(scope): void {
         // scope.negotiationPhrase.changePhrase(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);
+        console.log(scope.bids);
+        const user_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
+        const graph = new DirectedGraph();
+
+        scope._createOutcomeSpace(scope.bids, user_bid, graph, scope);
+
+        // const aa = graph.getAdjacencyToNode(user_bid);
+        // const getLastKeyInMap = Array.from(aa)[aa.size - 1][0];
+        // console.log(aa);
+        // console.log(graph.leaves);
+        // console.log(new UniformCostSearch().getShortestPath(user_bid, getLastKeyInMap, graph));
+    }
+
+    private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, graph: DirectedGraph, scope): void {
+        const op1 = new ActorRevision().getBidOptions(all_bids, root_bid);
+        const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
+        const op3 = new NormExtension().getBidOptions(all_bids, root_bid);
+        const op4 = new NormRevision().getBidOptions(all_bids, root_bid);
+
+        console.log('Actor-revision:', op1);
+        console.log('Predicate-revision:', op2);
+        console.log('Norm-extension:', op3);
+        console.log('Norm-revision:', op4);
+
+        op1.concat(op2, op3, op4).forEach(bid => {
+            const weight = this.negotiation.agent.preferences.reduce((accumulator, value) => {
+                return bid.promotes.some(b => b.id === value.id) ? accumulator + value.weight : accumulator - value.weight;
+            }, 0);
+
+            graph.addEdge(root_bid, bid, weight);
+        });
+
+        const targets = graph.getOutEdges(root_bid);
+
+        console.log(targets);
+
+        if (!isNullOrUndefined(targets) && targets.length > 0) {
+            targets.forEach(target => {
+                scope._createOutcomeSpace(all_bids, target.data, graph, scope);
+            });
+        }
     }
 }

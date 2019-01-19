@@ -9,7 +9,9 @@ export enum NegotiationPhrases {
     FIRST_OFFER,
     SELECT_DEMOTES_AND_PROMOTES,
     USER_TURN,
-    AGENTS_TURN
+    AGENTS_TURN,
+    CONTINUE_OR_EXIT,
+    EXIT
 }
 
 export class NegotiationPhrase {
@@ -32,7 +34,9 @@ export class NegotiationPhrase {
 
         // Bid generation states
         this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);
-        this._phrase.from(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES).to(NegotiationPhrases.FIRST_OFFER);
+        this._phrase.from(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES).to(NegotiationPhrases.CONTINUE_OR_EXIT);
+        this._phrase.from(NegotiationPhrases.CONTINUE_OR_EXIT).to(NegotiationPhrases.EXIT);
+        this._phrase.from(NegotiationPhrases.CONTINUE_OR_EXIT).to(NegotiationPhrases.FIRST_OFFER);
     }
 
 

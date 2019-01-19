@@ -93,6 +93,11 @@
 
             </app-promotion-and-demotion-selection>
 
+            <app-continue-or-exit [negotiation]="negotiation" [phrase]="negotiationPhrase" fxFlex 
+                *ngSwitchCase="negotiationPhrases.CONTINUE_OR_EXIT">
+
+            </app-continue-or-exit>
+
             <form #replyForm="ngForm" (ngSubmit)="reply($event)" (keydown.enter)="reply($event)" fxFlex fxLayout="row"
                 *ngSwitchDefault fxLayoutAlign="start center">
 

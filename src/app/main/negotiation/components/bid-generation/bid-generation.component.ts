@@ -11,6 +11,7 @@ import { NegotiationPhrases, NegotiationPhrase } from '../../models/negotiation-
 import { Negotiation } from '../../models/negotiation.model';
 import { ScenarioFactoryService } from '../../factories/scenario-factory.service';
 import { isNull } from 'util';
+import { Roles } from '../../models/roles.enum';
 
 @Component({
     selector: 'bid-generation',
@@ -51,8 +52,10 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
         private _chatService: NegotiationService,
         private scenarioFactory: ScenarioFactoryService
     ) {
-        this.negotiation = new Negotiation('111', new User('2', 'Furkan'));
+        this.negotiation = new Negotiation('111', new User('2', 'Furkan', null, Roles.POLICE));
         this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
+
+        this.negotiation.agent = new User('2', 'Hospital Administration', null, Roles.HOSPITAL);
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
@@ -71,10 +74,11 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
         this.negotiationPhrase = new NegotiationPhrase();
 
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.WELCOME, this.onWelcome, this);
-        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.SCENARIO_SELECTION, this.onScenarioSelection, this);
-        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.ROLE_SELECTION, this.onRoleSelection, this);
+        // this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.SCENARIO_SELECTION, this.onScenarioSelection, this);
+        // this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.ROLE_SELECTION, this.onRoleSelection, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.AGENTS_TURN, this.onAgentTurn, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES, this.onPromoteSelection, this);
+        // this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.CONTINUE_OR_EXIT, this.onContinueOrExit, this);
     }
 
     /**
@@ -263,7 +267,7 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
         scope.createAutomatedMessage('I am the Simulator');
         scope.createAutomatedMessage('I will guide you during simulation.');
 
-        scope.negotiationPhrase.changePhrase(NegotiationPhrases.SCENARIO_SELECTION);
+        scope.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
     }
 
     private onScenarioSelection(scope): void {
@@ -283,4 +287,8 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
     private onAgentTurn(scope): void {
         scope.negotiationPhrase.changePhrase(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);
     }
+
+    // private onContinueOrExit(scope): void {
+
+    // }
 }

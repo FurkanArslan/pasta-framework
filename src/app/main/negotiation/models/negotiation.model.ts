@@ -11,11 +11,11 @@ export class Negotiation {
     user: User;
     agent: User;
 
-    constructor(id, user, dialogs?, bids?) {
+    constructor(id, user, agent?, dialogs?, bids?) {
         this.id = id;
         this.user = user;
+        this.agent = agent || null;
         this.dialogs = dialogs || [];
         this.bids = bids || [];
-        this.agent = null;
     }
 }

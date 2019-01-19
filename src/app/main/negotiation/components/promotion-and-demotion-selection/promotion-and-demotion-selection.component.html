@@ -5,7 +5,7 @@
         <label fxFlex="25" class="mat-caption"> The bid promotes these values: </label>
         <mat-form-field floatLabel="never" appearance="standard" fxFlex fxFlexOffset="5">
             <mat-select placeholder="promotes" ngModel name="promotes" multiple>
-                <mat-option *ngFor="let value of valuesCollection$ | async" [value]="value.id">
+                <mat-option *ngFor="let value of valuesCollection$ | async" [value]="value">
                     {{value.name}}
                 </mat-option>
             </mat-select>
@@ -16,7 +16,7 @@
         <label fxFlex="25" class="mat-caption"> The bid demotes these values: </label>
         <mat-form-field floatLabel="never" appearance="standard" fxFlex fxFlexOffset="5">
             <mat-select placeholder="demotes" ngModel name="demotes" multiple>
-                <mat-option *ngFor="let value of valuesCollection$ | async" [value]="value.id">
+                <mat-option *ngFor="let value of valuesCollection$ | async" [value]="value">
                     {{value.name}}
                 </mat-option>
             </mat-select>

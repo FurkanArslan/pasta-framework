@@ -24,19 +24,11 @@ export class NormExtension extends BidGeneration {
         return optionsByNormExtension.concat(optionsByNormRemoving);
     }
 
-    private _includes(norms1: Norm[], norms2: Norm[]): boolean {
-        return norms1.every(norm_ => this._isInArray1(norm_, norms2));
-    }
+    // private _includes(norms1: Norm[], norms2: Norm[]): boolean {
+    //     return norms1.every(norm_ => this._isInArray1(norm_, norms2));
+    // }
 
-    private _isInArray1(norm: Norm, norms2: Norm[]): boolean {
-        return norms2.some(norm_ => this._isSameNorm(norm_, norm));
-    }
-
-    private _isSameNorm(norm1: Norm, norm2: Norm): boolean {
-        return norm1.normType === norm2.normType &&
-            norm1.hasSubject === norm2.hasSubject &&
-            norm1.hasObject === norm2.hasObject &&
-            norm1.hasAntecedent === norm2.hasAntecedent &&
-            norm1.hasConsequent === norm2.hasConsequent;
-    }
+    // private _isInArray1(norm: Norm, norms2: Norm[]): boolean {
+    //     return norms2.some(norm_ => this._isSameNorm(norm_, norm));
+    // }
 }

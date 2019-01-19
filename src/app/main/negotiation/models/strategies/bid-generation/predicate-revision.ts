@@ -23,6 +23,7 @@ export class PredicateRevision extends BidGeneration {
     private _isSameNormExceptAntecedent(norm: Norm, norm1: Norm, scope): boolean {
         return scope._isSameConsequent(norm.hasConsequent, norm1.hasConsequent) &&
             !(scope._isSameArray(norm.hasAntecedent, norm1.hasAntecedent)) &&
+            norm.hasAntecedent.length === norm1.hasAntecedent.length &&
             scope._isSameItem(norm.hasSubject, norm1.hasSubject) &&
             norm.hasObject === norm1.hasObject &&
             norm.normType === norm1.normType;
@@ -30,6 +31,7 @@ export class PredicateRevision extends BidGeneration {
 
     private _isSameNormExceptConsequent(norm: Norm, norm1: Norm, scope): boolean {
         return !(scope._isSameConsequent(norm.hasConsequent, norm1.hasConsequent)) &&
+            norm.hasConsequent.length === norm1.hasConsequent.length &&
             scope._isSameArray(norm.hasAntecedent, norm1.hasAntecedent) &&
             scope._isSameItem(norm.hasSubject, norm1.hasSubject) &&
             norm.hasObject === norm1.hasObject &&

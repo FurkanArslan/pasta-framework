@@ -21,6 +21,7 @@ import { NegotiationInputComponent } from './components/negotiation-input/negoti
 import { BidGenerationComponent } from './components/bid-generation/bid-generation.component';
 import { PromotionAndDemotionSelectionComponent } from './components/promotion-and-demotion-selection/promotion-and-demotion-selection.component';
 import { PreferencesSelectionComponent } from './components/preferences-selection/preferences-selection.component';
+import { ContinueOrExitComponent } from './components/continue-or-exit/continue-or-exit.component';
 
 const routes: Routes = [
     {
@@ -40,7 +41,8 @@ const routes: Routes = [
         NegotiationInputComponent,
         BidGenerationComponent,
         PromotionAndDemotionSelectionComponent,
-        // PreferencesSelectionComponent,
+        PreferencesSelectionComponent,
+        ContinueOrExitComponent,
         EnumToArrayPipe
     ],
     imports     : [
