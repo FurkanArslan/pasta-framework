@@ -26,7 +26,8 @@ export abstract class BidGeneration {
     }
 
     protected _isSameArray(items1: DataBase[], items2: DataBase[]): boolean {
-        return items1.every(item => this._isInArray(item, items2));
+        return items1.every(item => this._isInArray(item, items2)) &&
+            items2.every(item => this._isInArray(item, items1));
     }
 
     protected _isInArray(item: DataBase, items2: DataBase[]): boolean {
@@ -40,5 +41,9 @@ export abstract class BidGeneration {
     protected _isSameConsequent(consequent1: string[], consequent2: string[]): boolean {
         return consequent1.every(consequent_ => consequent2.includes(consequent_)) &&
             consequent2.every(consequent_ => consequent1.includes(consequent_));
+    }
+
+    protected _differenceNorms(norms1: Norm[], norms2: Norm[]): Norm[] {
+        return norms1.filter(norm1 => !norms2.some(norm2 => this._isSameNorm(norm1, norm2)));
     }
 }

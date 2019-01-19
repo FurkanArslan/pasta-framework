@@ -329,6 +329,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, graph: DirectedGraph, scope): void {
+        console.log('Root-bid:', root_bid.consistOf);
         const op1 = new ActorRevision().getBidOptions(all_bids, root_bid);
         const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
         const op3 = new NormExtension().getBidOptions(all_bids, root_bid);
@@ -349,7 +350,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         const targets = graph.getOutEdges(root_bid);
 
-        console.log(targets);
+        console.log('targets', targets);
+        console.log('*********');
 
         if (!isNullOrUndefined(targets) && targets.length > 0) {
             targets.forEach(target => {

@@ -12,11 +12,7 @@ export class NormRevision extends BidGeneration {
                 const diff1 = this._differenceNorms(bid_.consistOf, bid.consistOf);
                 const diff2 = this._differenceNorms(bid.consistOf, bid_.consistOf);
 
-                return (diff1.length === 1 && diff1[0].normType !== diff2[0].normType);
+                return (diff1.length === 1 && diff2.length === 1 && diff1[0].normType !== diff2[0].normType);
             });
-    }
-
-    private _differenceNorms(norms1: Norm[], norms2: Norm[]): Norm[] {
-        return norms1.filter(norm1 => !norms2.some(norm2 => this._isSameNorm(norm1, norm2)));
     }
 }

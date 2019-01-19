@@ -3,7 +3,8 @@ import { User } from './user.model';
 import { Value } from './value.model';
 
 // import firebase = require('firebase');
-import {database} from 'firebase';
+import {firestore} from 'firebase/app';
+
 export class Bid {
     id: string;
     cdate: any;
@@ -20,6 +21,7 @@ export class Bid {
         this.offeredTo = offeredTo;
         this.demotes = demotes || [];
         this.promotes = promotes || [];
-        this.cdate = cdate || database.ServerValue.TIMESTAMP;
+        this.cdate = cdate || firestore.FieldValue.serverTimestamp();
+        
     }
 }

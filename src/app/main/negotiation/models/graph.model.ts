@@ -29,12 +29,15 @@ export class DirectedGraph {
      * @param target The target of the edge.
      */
     addEdge(source: Bid, target: Bid, weight?, name?): void {
-        if (this._checkCircular(source, target)) {
+        const outEdgesSource = this.addNode(source)[0];
+
+        // if (this._checkCircular(source, target) &&
+        //     (outEdgesSource.length > 0 && outEdgesSource.some(e => e.data.id === target.id))) {
+        if (this._checkCircular(source, target){
             // console.log(`found circular reference ${source.id} -> ${target.id}`);
             return;
         }
 
-        const outEdgesSource = this.addNode(source)[0];
         const inEdgesTarget = this.addNode(target)[1];
 
         outEdgesSource.push({ data: target, weight: weight || 0, name: name });
@@ -50,7 +53,7 @@ export class DirectedGraph {
         const inEdges = this.getInEdges(node);
 
         if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
-            if (inEdges.some(e => e.data === target)) {
+            if (inEdges.some(e => e.data.id === target.id)) {
                 return true;
             } else {
                 return inEdges.some(e => this._checkCircular(e.data, target));
