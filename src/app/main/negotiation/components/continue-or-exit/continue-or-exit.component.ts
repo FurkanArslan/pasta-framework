@@ -23,6 +23,6 @@ export class ContinueOrExitComponent {
     onContinue(event): void {
         event.preventDefault();
 
-        this.phrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
+        this.phrase.changePhrase(NegotiationPhrases.USER_TURN);
     }
 }

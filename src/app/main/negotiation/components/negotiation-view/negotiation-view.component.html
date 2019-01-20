@@ -84,15 +84,24 @@
         <!-- REPLY FORM -->
         <div class="reply-form" fxFlex="0 0 auto" fxLayout="row" fxLayoutAlign="center center" [ngSwitch]="negotiationPhrase?.phrase.currentState">
 
-            <app-negotiation-input *ngSwitchCase="negotiationPhrases.FIRST_OFFER" [negotiation]="negotiation" [phrase]="negotiationPhrase">
+            <app-negotiation-input *ngSwitchCase="negotiationPhrases.USER_TURN" [negotiation]="negotiation" [phrase]="negotiationPhrase">
 
             </app-negotiation-input>
 
-            <!-- <app-preference-selection *ngSwitchCase="negotiationPhrases.PREFERENCE_SELECTION" [negotiation]="negotiation" [phrase]="negotiationPhrase">
+            <form fxLayout="row" fxFlex fxLayoutAlign="center center" fxLayoutGap="25px" *ngSwitchCase="negotiationPhrases.CONTINUE_OR_EXIT">
 
-            </app-preference-selection> -->
+                <button mat-flat-button aria-label="continue" (click)="onAccept($event)">
+                    Accept
+                </button>
+            
+                <span> or </span>
+            
+                <button mat-flat-button aria-label="exit" (click)="onReject($event)">
+                    Propose New Bid 
+                </button>
+            </form>
 
-            <form #replyForm="ngForm" *ngSwitchDefault (ngSubmit)="reply($event)" (keydown.enter)="reply($event)"
+            <!-- <form #replyForm="ngForm" *ngSwitchDefault (ngSubmit)="reply($event)" (keydown.enter)="reply($event)"
                 fxFlex fxLayout="row" fxLayoutAlign="start center">
 
                 <mat-form-field class="message-text" fxFlex floatLabel="never" appearance="standard">
@@ -104,7 +113,7 @@
                     <mat-icon class="secondary-text">send</mat-icon>
                 </button>
 
-            </form>
+            </form> -->
 
         </div>
         <!-- / REPLY FORM -->

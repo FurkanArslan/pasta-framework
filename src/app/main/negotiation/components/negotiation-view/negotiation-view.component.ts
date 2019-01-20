@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Subject, Observable } from 'rxjs';
+import { Subject } from 'rxjs';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
@@ -13,17 +13,14 @@ import { ScenarioFactoryService } from '../../factories/scenario-factory.service
 import { isNull, isNullOrUndefined } from 'util';
 import { Bid } from '../../models/bid.model';
 import { Roles } from '../../models/roles.enum';
-import { Authorization } from '../../models/norm/authorization.model';
+
 import { DirectedGraph } from '../../models/graph.model';
 import { NormExtension } from '../../models/strategies/bid-generation/norm-extension';
-import { Commitment } from '../../models/norm/commitment.model';
 import { ActorRevision } from '../../models/strategies/bid-generation/actor-revision';
 import { PredicateRevision } from '../../models/strategies/bid-generation/predicate-revision';
 import { Value } from '../../models/value.model';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { take } from 'rxjs/operators';
-import { last } from '@angular/router/src/utils/collection';
-import { UniformCostSearch } from '../../models/ucs.model';
+import { AngularFirestore } from '@angular/fire/firestore';
+
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
 
 @Component({
@@ -56,6 +53,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     // Private
     private _unsubscribeAll: Subject<any>;
     private bids: Bid[] = [];
+    private lastAgentBid: Bid[] = null;
+    graph: DirectedGraph;
 
     /**
      * Constructor
@@ -75,6 +74,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
+        this.graph = null;
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -116,9 +116,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     /**
      * Create Automated Message
      */
-    createAutomatedMessage(message): void {
+    createMessage(message, isBid?): void {
         // Message
-        const newMessage = new Message(this.simulator.id, message);
+        const newMessage = new Message(this.hospital.id, message, isBid);
 
         // Add the message to the chat
         this.negotiation.dialogs.push(newMessage);
@@ -128,7 +128,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * After view init
      */
     ngAfterViewInit(): void {
-        this.replyInput = this.replyInputField.first.nativeElement;
+        // this.replyInput = this.replyInputField.first.nativeElement;
         this.readyToReply();
 
         this.negotiationPhrase.changePhrase(NegotiationPhrases.WELCOME);
@@ -195,7 +195,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      */
     readyToReply(): void {
         setTimeout(() => {
-            this.focusReplyInput();
+            // this.focusReplyInput();
             this.scrollToBottom();
         });
     }
@@ -259,16 +259,32 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         // });
     }
 
+    onAccept(event): void {
+        event.preventDefault();
+
+        // Message
+        const newMessage = new Message(this.negotiation.user.id, 'I accept your offer');
+
+        // Add the message to the chat
+        this.negotiation.dialogs.push(newMessage);
+    }
+
+    onReject(event): void {
+        event.preventDefault();
+
+        this.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
+    }
+
     private setScenario(selectedScenario: string): void {
         const scenario = this.scenarioFactory.getScenario(selectedScenario);
         if (!isNull(scenario)) {
             this.negotiation.scenario = scenario;
 
-            this.createAutomatedMessage(`${selectedScenario} is good choice sir/madam`);
+            this.createMessage(`${selectedScenario} is good choice sir/madam`);
             this.negotiationPhrase.changePhrase(NegotiationPhrases.ROLE_SELECTION);
 
         } else {
-            this.createAutomatedMessage('I think you selected wrong scenario, you may try once again.');
+            this.createMessage('I think you selected wrong scenario, you may try once again.');
             this.readyToReply();
         }
     }
@@ -284,51 +300,61 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
                 this.negotiation.agent = new User('2', this.negotiation.scenario.role1, null, this.negotiation.scenario.role1);
             }
 
-            this.createAutomatedMessage(`You selected ${this.negotiation.user.role} role`);
-            this.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
+            this.createMessage(`You selected ${this.negotiation.user.role} role`);
+            this.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
         }
     }
 
     private onWelcome(scope): void {
-        scope.createAutomatedMessage('Hi!');
-        scope.createAutomatedMessage('Welcome to our Negotiation Simulation!');
-        scope.createAutomatedMessage('I am the Simulator');
-        scope.createAutomatedMessage('I will guide you during simulation.');
+        scope.createMessage('Hi!');
+        scope.createMessage('Welcome to our Negotiation Simulation!');
+        scope.createMessage('I am the Simulator');
+        scope.createMessage('I will guide you during simulation.');
 
         // scope.negotiationPhrase.changePhrase(NegotiationPhrases.SCENARIO_SELECTION);
-        scope.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
+        scope.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
     }
 
     private onScenarioSelection(scope): void {
-        scope.createAutomatedMessage('There are three available scenario in our simulation. Type between 1-3 to choice scenario.');
+        scope.createMessage('There are three available scenario in our simulation. Type between 1-3 to choice scenario.');
     }
 
     private onRoleSelection(scope): void {
-        scope.createAutomatedMessage('In this scenario you can choice two different roles.');
-        scope.createAutomatedMessage(`First role is ${scope.negotiation.scenario.role1} and other role is ${scope.negotiation.scenario.role2}.`);
-        scope.createAutomatedMessage('Please choice your role by typing 1 or 2');
+        scope.createMessage('In this scenario you can choice two different roles.');
+        scope.createMessage(`First role is ${scope.negotiation.scenario.role1} and other role is ${scope.negotiation.scenario.role2}.`);
+        scope.createMessage('Please choice your role by typing 1 or 2');
     }
 
     private onPreferenceSelection(scope): void {
-        scope.createAutomatedMessage('Please select preferences of values:');
+        scope.createMessage('Please select preferences of values:');
     }
 
     private onAgentTurn(scope): void {
-        // scope.negotiationPhrase.changePhrase(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);
-        console.log(scope.bids);
-        const user_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
-        const graph = new DirectedGraph();
+        if (isNull(scope.lastAgentBid)) {
+            console.log(scope.bids);
+            const user_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
+            scope.graph = new DirectedGraph();
 
-        scope._createOutcomeSpace(scope.bids, user_bid, graph, scope);
+            scope._createOutcomeSpace(scope.bids, user_bid, scope);
 
-        const aa = graph.getAdjacencyToNode(user_bid);
-        const getLastKeyInMap = Array.from(aa)[aa.size - 1][0];
-        console.log(aa);
-        console.log(getLastKeyInMap);
-        console.log(graph.leaves);
+            console.log(scope.graph.leaves);
+
+            console.log(scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0]);
+            const nextBid = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
+            scope._offerABid(nextBid, scope);
+        } else {
+            const inEdges = scope.graph.getInEdges(scope.lastAgentBid);
+            let nextBid = scope.lastAgentBid;
+
+            if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
+                nextBid = scope.graph.getInEdges(scope.lastAgentBid).sort((a, b) => b.utility - a.utility)[0];
+            }
+
+            scope._offerABid(nextBid, scope);
+        }
     }
 
-    private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, graph: DirectedGraph, scope): void {
+    private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, scope): void {
         console.log('Root-bid:', root_bid.consistOf);
         const op1 = new ActorRevision().getBidOptions(all_bids, root_bid);
         const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
@@ -345,18 +371,30 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
                 return bid.promotes.some(b => b.id === value.id) ? accumulator + value.weight : accumulator - value.weight;
             }, 0);
 
-            graph.addEdge(root_bid, bid, weight);
+            scope.graph.addEdge(root_bid, bid, weight);
         });
 
-        const targets = graph.getOutEdges(root_bid);
+        const targets = scope.graph.getOutEdges(root_bid);
 
         console.log('targets', targets);
         console.log('*********');
 
         if (!isNullOrUndefined(targets) && targets.length > 0) {
             targets.forEach(target => {
-                scope._createOutcomeSpace(all_bids, target.data, graph, scope);
+                scope._createOutcomeSpace(all_bids, target.data, scope);
             });
         }
+    }
+
+    private _offerABid(bid: Bid, scope): void {
+        scope.lastAgentBid = bid;
+
+        for (const norm of bid.consistOf) {
+            console.log(norm.toString());
+            scope.createMessage(norm.toString(), true);
+        }
+
+        scope.negotiation.bids.push(bid);
+        scope.negotiationPhrase.changePhrase(NegotiationPhrases.CONTINUE_OR_EXIT);
     }
 }

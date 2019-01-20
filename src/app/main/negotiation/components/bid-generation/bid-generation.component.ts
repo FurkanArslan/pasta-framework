@@ -257,7 +257,7 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
             }
 
             this.createAutomatedMessage(`You selected ${this.negotiation.user.role} role`);
-            this.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
+            this.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
         }
     }
 
@@ -267,7 +267,7 @@ export class BidGenerationComponent implements OnInit, OnDestroy, AfterViewInit 
         scope.createAutomatedMessage('I am the Simulator');
         scope.createAutomatedMessage('I will guide you during simulation.');
 
-        scope.negotiationPhrase.changePhrase(NegotiationPhrases.FIRST_OFFER);
+        scope.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
     }
 
     private onScenarioSelection(scope): void {

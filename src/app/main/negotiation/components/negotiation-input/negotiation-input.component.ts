@@ -7,7 +7,7 @@ import { Bid } from '../../models/bid.model';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
-import { AngularFirestoreCollection, AngularFirestore } from '@angular/fire/firestore';
+import { AngularFirestore } from '@angular/fire/firestore';
 import { RolesData, DataBase, ConditionsData } from '../../models/data';
 import { Data } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
@@ -108,7 +108,16 @@ export class NegotiationInputComponent implements OnInit {
             .filter(bid_ => bid_.consistOf.length === this.norms.length)
             .find(bid_ => this._includes(this.norms, bid_.consistOf));
 
-        return !isNullOrUndefined(foundedBid) ? foundedBid : new Bid(this.afs.createId(), this.negotiation.user, this.negotiation.agent, this.norms);
+        if (!isNullOrUndefined(foundedBid)) {
+            return foundedBid;
+        } else {
+            const id = this.afs.createId();
+            const newBid = new Bid(id, this.negotiation.user, this.negotiation.agent, this.norms);
+
+            this.afs.collection<Bid>('bids').doc(id).set(newBid);
+
+            return newBid;
+        }
     }
 
     private _includes(norms1: Norm[], norms2: Norm[]): boolean {
