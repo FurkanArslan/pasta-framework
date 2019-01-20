@@ -4,7 +4,23 @@ import { Norm } from '../../norm/norm.model';
 
 export class ActorRevision extends BidGeneration {
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
-        return availableBids.filter(bid_ => bid_.consistOf.length === bid.consistOf.length && bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf)));
+
+        return availableBids
+            .filter(bid_ => bid_.consistOf.length === bid.consistOf.length) // filter by norms count
+            .filter(bid_ => bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf)))  // filter by similarity
+            .filter(bid_ => !this._includes(bid.consistOf, bid_.consistOf)) // filter by similarity
+            .filter(bid_ => {                                               // filter by first norm difference & norm type then antecedent difference
+                const diff1 = this._differenceNorms(bid_.consistOf, bid.consistOf);
+                const diff2 = this._differenceNorms(bid.consistOf, bid_.consistOf);
+
+                if (diff1.length === 1 && diff2.length === 1 && diff1[0].normType === diff2[0].normType) {
+                    return !this._isSameItem(diff1[0].hasSubject, diff2[0].hasSubject);
+                }
+
+                return false;
+            });
+
+        // return availableBids.filter(bid_ => bid_.consistOf.length === bid.consistOf.length && bid_.consistOf.some(norm => this._isInNorm(norm, bid.consistOf)));
     }
 
     private _isInNorm(item: Norm, items2: Norm[]): boolean {
