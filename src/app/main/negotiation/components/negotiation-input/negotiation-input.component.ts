@@ -62,7 +62,7 @@ export class NegotiationInputComponent implements OnInit {
             });
 
         this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
-            this.bids = bids_;
+            this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
         });
 
         // this.currentBid = new Bid(this.afs.createId(), this.negotiation.user, this.negotiation.agent);

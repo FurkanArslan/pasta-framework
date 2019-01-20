@@ -109,7 +109,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         });
 
         this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
-            this.bids = bids_;
+            this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
         });
     }
 
@@ -321,11 +321,11 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         scope._createOutcomeSpace(scope.bids, user_bid, graph, scope);
 
-        // const aa = graph.getAdjacencyToNode(user_bid);
-        // const getLastKeyInMap = Array.from(aa)[aa.size - 1][0];
-        // console.log(aa);
-        // console.log(graph.leaves);
-        // console.log(new UniformCostSearch().getShortestPath(user_bid, getLastKeyInMap, graph));
+        const aa = graph.getAdjacencyToNode(user_bid);
+        const getLastKeyInMap = Array.from(aa)[aa.size - 1][0];
+        console.log(aa);
+        console.log(getLastKeyInMap);
+        console.log(graph.leaves);
     }
 
     private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, graph: DirectedGraph, scope): void {

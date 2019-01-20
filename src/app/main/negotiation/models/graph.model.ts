@@ -41,10 +41,17 @@ export class DirectedGraph {
             return;
         }
 
+        this._setTargetUtility(source, target, weight || 0);
+
         outEdgesSource.push({ data: target, weight: weight || 0, name: name });
         inEdgesTarget.push({ data: source, weight: weight || 0, name: name });
     }
 
+    /**
+     * @param  {} outEdges
+     * @param  {} target
+     * @returns boolean
+     */
     private _checkSameChildExits(outEdges, target): boolean {
         if (outEdges.length > 0) {
             if (outEdges.some(e => e.data.id === target.id)) {
@@ -71,6 +78,16 @@ export class DirectedGraph {
             }
         } else {
             return false;
+        }
+    }
+
+    private _setTargetUtility(source, target, weight): void {
+        target.utility = source.utility + weight;
+
+        const outEdgesOfTarget = this.getOutEdges(target);
+
+        for (const edge of outEdgesOfTarget) {
+            this._setTargetUtility(target, edge.data, edge.weight);
         }
     }
 
