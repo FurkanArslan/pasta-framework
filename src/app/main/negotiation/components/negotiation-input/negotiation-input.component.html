@@ -1,4 +1,4 @@
-<form #replyForm="ngForm" class="negotiation-input" (ngSubmit)="sendBid($event)" (keydown.enter)="reply($event)" fxFlex
+<form #replyForm="ngForm" class="negotiation-input" (ngSubmit)="sendBid($event)" (keydown.enter)="sendBid($event)" fxFlex
     fxLayout="row" fxLayoutAlign="start center">
 
     <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mr-16 message-text">

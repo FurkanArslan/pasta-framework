@@ -339,7 +339,6 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
             console.log(scope.graph.leaves);
 
-            console.log(scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0]);
             const nextBid = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
             scope._offerABid(nextBid, scope);
         } else {
@@ -347,10 +346,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             let nextBid = scope.lastAgentBid;
 
             if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
-                nextBid = scope.graph.getInEdges(scope.lastAgentBid).sort((a, b) => b.utility - a.utility)[0];
+                nextBid = scope.graph.getInEdges(scope.lastAgentBid).sort((a, b) => b.data.utility - a.data.utility)[0];
             }
 
-            scope._offerABid(nextBid, scope);
+            scope._offerABid(nextBid.data, scope);
         }
     }
 
@@ -390,7 +389,6 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         scope.lastAgentBid = bid;
 
         for (const norm of bid.consistOf) {
-            console.log(norm.toString());
             scope.createMessage(norm.toString(), true);
         }
 
