@@ -1,10 +1,11 @@
 import { Norm } from './norm.model';
 import { NormTypes } from './norm-types.enum';
 import { RolesData, ConditionsData } from '../data';
+import { Consequent } from '../consequent.model';
 
 export class Authorization extends Norm {
-    constructor(subject: RolesData, object: string, antecedent: ConditionsData[], consequent: string[]) {
-        super(subject, object, antecedent, consequent);
+    constructor(id: string, subject: RolesData, object: string, antecedent: ConditionsData[], consequent: Consequent[]) {
+        super(id, subject, object, antecedent, consequent);
 
         this.normType = NormTypes.AUTH;
     }

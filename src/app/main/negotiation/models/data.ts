@@ -4,14 +4,22 @@ export interface DataBase {
     cdate?: Date;
 }
 
-export interface RolesData extends DataBase{
-    sub_roles?: string[];
+export interface RolesData extends DataBase {
+    moreGeneral?: string[];
+    exclusive?: string[];
+    equal?: string[];
 }
 
-export interface ConditionsData extends DataBase{
+export interface ConditionsData extends DataBase {
     sub_condition?: string[];
 }
 
-export interface Data extends DataBase{
+export interface Data extends DataBase {
     sub_data?: string[];
+}
+
+export interface ActionsData extends DataBase {
+    promotes: string[];
+    demotes: string[];
+    moreGeneral: string[];
 }

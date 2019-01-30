@@ -25,12 +25,13 @@ export class Bid {
         this.promotes = promotes || [];
         this.cdate = cdate || firestore.FieldValue.serverTimestamp();
         this._utilityValue = 0;
+        this.consistOf = norms;
 
-        if (!isNullOrUndefined(norms)) {
-            this.consistOf = norms.map(norm => new NormFactoryService().getNorm(norm.normType, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
-        } else {
-            this.consistOf = [];
-        }
+        // if (!isNullOrUndefined(norms)) {
+        //     this.consistOf = norms.map(norm => new NormFactoryService().getNorm(norm.normType, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+        // } else {
+        //     this.consistOf = [];
+        // }
     }
 
     set utility(newUtility: number) {

@@ -1,6 +1,7 @@
 import { Bid } from '../../bid.model';
 import { DataBase } from '../../data';
 import { Norm } from '../../norm/norm.model';
+import { Consequent } from '../../consequent.model';
 
 export abstract class BidGeneration {
     public abstract getBidOptions(availableBids: Bid[], bid: Bid): Bid[];
@@ -38,7 +39,7 @@ export abstract class BidGeneration {
         return item1.id === item2.id;
     }
 
-    protected _isSameConsequent(consequent1: string[], consequent2: string[]): boolean {
+    protected _isSameConsequent(consequent1: Consequent[], consequent2: Consequent[]): boolean {
         return consequent1.every(consequent_ => consequent2.includes(consequent_)) &&
             consequent2.every(consequent_ => consequent1.includes(consequent_));
     }

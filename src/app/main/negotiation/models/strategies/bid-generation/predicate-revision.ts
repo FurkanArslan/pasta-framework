@@ -2,6 +2,7 @@ import { Bid } from '../../bid.model';
 import { BidGeneration } from './bid-generation';
 import { Norm } from '../../norm/norm.model';
 import { ConditionsData } from '../../data';
+import { Consequent } from '../../consequent.model';
 
 export class PredicateRevision extends BidGeneration {
 
@@ -67,7 +68,7 @@ export class PredicateRevision extends BidGeneration {
         return antecedents1.filter(antecedent1 => !this._isInArray(antecedent1, antecedents2));
     }
 
-    private _differenceConsequent(consequents1: string[], consequents2: string[]): string[] {
+    private _differenceConsequent(consequents1: Consequent[], consequents2: Consequent[]): Consequent[] {
         return consequents1.filter(consequent1 => !consequents2.includes(consequent1));
     }
 }

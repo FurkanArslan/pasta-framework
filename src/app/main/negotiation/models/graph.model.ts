@@ -1,8 +1,8 @@
 import { isNullOrUndefined } from 'util';
-import { Bid } from './bid.model';
+import { Norm } from './norm/norm.model';
 
 export interface Edge {
-    data: Bid;
+    data: Norm;
     weight: number;
     name?: string;
 }
@@ -11,15 +11,15 @@ export interface Edge {
  * Represents a graph with vertices and edges.
  */
 export class DirectedGraph {
-    private _outEdges: Map<Bid, Edge[]>;
-    private _inEdges: Map<Bid, Edge[]>;
+    private _outEdges: Map<Norm, Edge[]>;
+    private _inEdges: Map<Norm, Edge[]>;
 
     /**
      * Create a new instance.
      */
-    constructor(edges?: Map<Bid, Edge[]>) {
-        this._outEdges = edges || new Map<Bid, Edge[]>();
-        this._inEdges = edges || new Map<Bid, Edge[]>();
+    constructor(edges?: Map<Norm, Edge[]>) {
+        this._outEdges = edges || new Map<Norm, Edge[]>();
+        this._inEdges = edges || new Map<Norm, Edge[]>();
     }
 
 
@@ -28,7 +28,7 @@ export class DirectedGraph {
      * @param source The source of the edge.
      * @param target The target of the edge.
      */
-    addEdge(source: Bid, target: Bid, weight?, name?): void {
+    addEdge(source: Norm, target: Norm, weight?, name?): void {
         if (this._checkCircular(source, target)) {
             // console.log(`found circular reference ${source.id} -> ${target.id}`);
             return;
@@ -67,7 +67,7 @@ export class DirectedGraph {
      * @param parents A list of parents already visited.
      * @param node The node to find in the parents.
      */
-    private _checkCircular(node: Bid, target: Bid): boolean {
+    private _checkCircular(node: Norm, target: Norm): boolean {
         const inEdges = this.getInEdges(node);
 
         if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
@@ -95,11 +95,11 @@ export class DirectedGraph {
      * Add a node.
      * @param node The node to add.
      */
-    addNode(node: Bid): [Edge[], Edge[]] {
+    addNode(node: Norm): [Edge[], Edge[]] {
         return [this._addOutEdge(node), this._addInEdge(node)];
     }
 
-    private _addOutEdge(node: Bid): Edge[] {
+    private _addOutEdge(node: Norm): Edge[] {
         let outEdges = this.getOutEdges(node);
 
         if (outEdges === undefined) {
@@ -110,7 +110,7 @@ export class DirectedGraph {
         return outEdges;
     }
 
-    private _addInEdge(node: Bid): Edge[] {
+    private _addInEdge(node: Norm): Edge[] {
         let inEdges = this.getInEdges(node);
 
         if (inEdges === undefined) {
@@ -125,7 +125,7 @@ export class DirectedGraph {
      * Get the targets of a node
      * @param node The node to get its targets
      */
-    getOutEdges(node: Bid): Edge[] {
+    getOutEdges(node: Norm): Edge[] {
         return this._outEdges.get(node);
     }
 
@@ -133,7 +133,7 @@ export class DirectedGraph {
      * Get the targets of a node
      * @param node The node to get its targets
      */
-    getInEdges(node: Bid): Edge[] {
+    getInEdges(node: Norm): Edge[] {
         return this._inEdges.get(node);
     }
 
@@ -141,7 +141,7 @@ export class DirectedGraph {
     /**
      * Get the edges.
      */
-    get edges(): Map<Bid, Edge[]> {
+    get edges(): Map<Norm, Edge[]> {
         return this._outEdges;
     }
 
@@ -149,7 +149,7 @@ export class DirectedGraph {
     /**
      * Get the leaf nodes.
      */
-    get leaves(): Bid[] {
+    get leaves(): Norm[] {
         return [...Array.from(this._outEdges.entries())].filter(x => x[1].length === 0).map(x => x[0]);
     }
 
@@ -158,9 +158,9 @@ export class DirectedGraph {
      * Create a shallow copy of this graph (copies edge map only).
      */
     shallowClone(): DirectedGraph {
-        const edges = [...Array.from(this._outEdges.entries())].map<[Bid, Edge[]]>(kv => [kv[0], [...kv[1]]]);
+        const edges = [...Array.from(this._outEdges.entries())].map<[Norm, Edge[]]>(kv => [kv[0], [...kv[1]]]);
 
-        return new DirectedGraph(new Map<Bid, Edge[]>(edges));
+        return new DirectedGraph(new Map<Norm, Edge[]>(edges));
     }
 
 
@@ -187,11 +187,11 @@ export class DirectedGraph {
      * Gets the path length of each reachable node to the given vertex.
      * @param root The root vertex.
      */
-    getAdjacencyToNode(root: Bid): Map<Bid, number> {
-        const adjacencies = new Map<Bid, number>();
-        const parents: Bid[] = [];
+    getAdjacencyToNode(root: Norm): Map<Norm, number> {
+        const adjacencies = new Map<Norm, number>();
+        const parents: Norm[] = [];
 
-        const recurse = (node: Bid, level: number) => {
+        const recurse = (node: Norm, level: number) => {
             parents.push(node);
             const adj = adjacencies.get(node);
 
@@ -222,7 +222,7 @@ export class DirectedGraph {
      * @param parents A list of parents already visited.
      * @param node The node to find in the parents.
      */
-    private _checkCircularReference(parents: Bid[], node: Bid): void {
+    private _checkCircularReference(parents: Norm[], node: Norm): void {
         const i = parents.indexOf(node);
         if (i !== -1) {
             throw new Error(`found circular reference ${parents.slice(i).join(' -> ')} -> ${node}`);

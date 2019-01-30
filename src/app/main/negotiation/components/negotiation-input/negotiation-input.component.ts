@@ -8,11 +8,12 @@ import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { RolesData, DataBase, ConditionsData } from '../../models/data';
+import { RolesData, DataBase, ConditionsData, ActionsData } from '../../models/data';
 import { Data } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Subscription, forkJoin, zip } from 'rxjs';
 import { isNullOrUndefined } from 'util';
+import { Consequent } from '../../models/consequent.model';
 
 @Component({
     selector: 'app-negotiation-input',
@@ -29,7 +30,7 @@ export class NegotiationInputComponent implements OnInit {
     roles$: Observable<RolesData[]>;
     conditions$: Observable<ConditionsData[]>;
 
-    consequent: string[] = [];
+    consequent: Consequent[] = [];
 
     @ViewChild('replyForm')
     replyForm: NgForm;
@@ -52,13 +53,14 @@ export class NegotiationInputComponent implements OnInit {
         this.conditions$ = this.afs.collection<ConditionsData>('conditions').valueChanges();
 
         const zippedCollections$ = zip(
-            this.afs.collection<DataBase>('actions').valueChanges(),
-            this.afs.collection<Data>('data').valueChanges())
+            this.afs.collection<ActionsData>('actions').valueChanges(),
+            this.afs.collection<DataBase>('data').valueChanges())
             .subscribe(results => {
                 const actions = results[0];
                 const data = results[1];
 
-                actions.forEach(action => data.forEach(data_ => this.consequent.push(`${action.name} ${data_.name}`)));
+                actions.forEach(action => data.forEach(data_ => this.consequent.push(new Consequent(data_, action))));
+                // actions.forEach(action => data.forEach(data_ => this.consequent.push(`${action.name} ${data_.name}`)));
             });
 
         this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
@@ -104,20 +106,20 @@ export class NegotiationInputComponent implements OnInit {
     }
 
     private _getOrCreateBid(): Bid {
-        const foundedBid = this.bids
-            .filter(bid_ => bid_.consistOf.length === this.norms.length)
-            .find(bid_ => this._includes(this.norms, bid_.consistOf));
+        // const foundedBid = this.bids
+        //     .filter(bid_ => bid_.consistOf.length === this.norms.length)
+        //     .find(bid_ => this._includes(this.norms, bid_.consistOf));
 
-        if (!isNullOrUndefined(foundedBid)) {
-            return foundedBid;
-        } else {
+        // if (!isNullOrUndefined(foundedBid)) {
+        //     return foundedBid;
+        // } else {
             const id = this.afs.createId();
             const newBid = new Bid(id, this.negotiation.user, this.negotiation.agent, this.norms);
 
-            this.afs.collection<Bid>('bids').doc(id).set(newBid);
+            // this.afs.collection<Bid>('bids').doc(id).set(newBid);
 
             return newBid;
-        }
+        // }
     }
 
     private _includes(norms1: Norm[], norms2: Norm[]): boolean {
@@ -149,7 +151,7 @@ export class NegotiationInputComponent implements OnInit {
         return item1.id === item2.id;
     }
 
-    private _isSameConsequent(consequent1: string[], consequent2: string[]): boolean {
+    private _isSameConsequent(consequent1: Consequent[], consequent2: Consequent[]): boolean {
         return consequent1.every(consequent_ => consequent2.includes(consequent_)) &&
             consequent2.every(consequent_ => consequent1.includes(consequent_));
     }

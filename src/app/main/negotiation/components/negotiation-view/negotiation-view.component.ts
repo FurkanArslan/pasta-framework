@@ -22,6 +22,8 @@ import { Value } from '../../models/value.model';
 import { AngularFirestore } from '@angular/fire/firestore';
 
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
+import { RolesData } from '../../models/data';
+import { NormFactoryService } from '../../factories/norm-factory.service';
 
 @Component({
     selector: 'negotiation-view',
@@ -53,6 +55,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     // Private
     private _unsubscribeAll: Subject<any>;
     private bids: Bid[] = [];
+    private roles: RolesData[] = [];
     private lastAgentBid: Bid[] = null;
     graph: DirectedGraph;
 
@@ -64,7 +67,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     constructor(
         private _chatService: NegotiationService,
         private scenarioFactory: ScenarioFactoryService,
-        private afs: AngularFirestore
+        private afs: AngularFirestore,
+        private normFactoryService: NormFactoryService,
     ) {
         const user = new User('3', 'Furkan', null, Roles.POLICE);
         this.hospital = new User('2', 'Hospital Administration', 'assets/images/avatars/Josefina.jpg', Roles.HOSPITAL);
@@ -110,6 +114,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
             this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
+        });
+
+        this.afs.collection<RolesData>('roles').valueChanges().subscribe(roles => {
+            this.roles = roles;
         });
     }
 
@@ -355,34 +363,35 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, scope): void {
         console.log('Root-bid:', root_bid.consistOf);
-        const op1 = new ActorRevision().getBidOptions(all_bids, root_bid);
-        const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
-        const op3 = new NormExtension().getBidOptions(all_bids, root_bid);
-        const op4 = new NormRevision().getBidOptions(all_bids, root_bid);
+        
+        new ActorRevision(this.roles, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
+        // const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
+        // const op3 = new NormExtension().getBidOptions(all_bids, root_bid);
+        // const op4 = new NormRevision().getBidOptions(all_bids, root_bid);
 
-        console.log('Actor-revision:', op1);
-        console.log('Predicate-revision:', op2);
-        console.log('Norm-extension:', op3);
-        console.log('Norm-revision:', op4);
+        // console.log('Actor-revision:', op1);
+        // console.log('Predicate-revision:', op2);
+        // console.log('Norm-extension:', op3);
+        // console.log('Norm-revision:', op4);
 
-        op1.concat(op2, op3, op4).forEach(bid => {
-            const weight = this.negotiation.agent.preferences.reduce((accumulator, value) => {
-                return bid.promotes.some(b => b.id === value.id) ? accumulator + value.weight : accumulator - value.weight;
-            }, 0);
+        // op1.concat(op2, op3, op4).forEach(bid => {
+        //     const weight = this.negotiation.agent.preferences.reduce((accumulator, value) => {
+        //         return bid.promotes.some(b => b.id === value.id) ? accumulator + value.weight : accumulator - value.weight;
+        //     }, 0);
 
-            scope.graph.addEdge(root_bid, bid, weight);
-        });
+        //     scope.graph.addEdge(root_bid, bid, weight);
+        // });
 
-        const targets = scope.graph.getOutEdges(root_bid);
+        // const targets = scope.graph.getOutEdges(root_bid);
 
-        console.log('targets', targets);
-        console.log('*********');
+        // console.log('targets', targets);
+        // console.log('*********');
 
-        if (!isNullOrUndefined(targets) && targets.length > 0) {
-            targets.forEach(target => {
-                scope._createOutcomeSpace(all_bids, target.data, scope);
-            });
-        }
+        // if (!isNullOrUndefined(targets) && targets.length > 0) {
+        //     targets.forEach(target => {
+        //         scope._createOutcomeSpace(all_bids, target.data, scope);
+        //     });
+        // }
     }
 
     private _offerABid(bid: Bid, scope): void {
