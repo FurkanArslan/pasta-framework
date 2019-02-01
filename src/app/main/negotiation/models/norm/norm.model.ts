@@ -1,7 +1,6 @@
 import { NormTypes } from './norm-types.enum';
-import { FirebaseData, FirebaseData } from '../data';
+import { FirebaseData } from '../data';
 import { Consequent } from '../consequent.model';
-import { FuseUtils } from '@fuse/utils';
 
 export abstract class Norm {
     id: string;
@@ -23,7 +22,11 @@ export abstract class Norm {
 
     get compoundConsequent(): string {
         return this.hasConsequent.reduce((consequent_, currentValue, currentIndex) => {
-            return currentIndex === 0 ? currentValue.toString().toLowerCase() : ` ${consequent_} and ${currentValue.toString().toLowerCase()}`;
+            if (currentIndex === 0) {
+                return `${currentValue.action.name.toLowerCase()} ${currentValue.data.name.toLowerCase()}`;
+            } else{
+                return `${consequent_} and ${currentValue.action.name.toLowerCase()} ${currentValue.data.name.toLowerCase()}`;
+            }
         }, '');
     }
 

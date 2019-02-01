@@ -24,6 +24,7 @@ import { AngularFirestore, QuerySnapshot, QueryDocumentSnapshot } from '@angular
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
 import { FirebaseData, FirebaseData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
+import { Norm } from '../../models/norm/norm.model';
 
 @Component({
     selector: 'negotiation-view',
@@ -352,17 +353,17 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
             console.log(scope.graph.leaves);
 
-            const nextBid = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
-            scope._offerABid(nextBid, scope);
+            const nextNorms = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
+            scope._offerABid(nextNorms, scope, user_bid);
         } else {
-            const inEdges = scope.graph.getInEdges(scope.lastAgentBid);
-            let nextBid = scope.lastAgentBid;
+            const inEdges = scope.graph.getInEdges(scope.lastAgentBid.consistOf[0]);
+            let nextNorms = scope.lastAgentBid.consistOf[0];
 
             if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
-                nextBid = scope.graph.getInEdges(scope.lastAgentBid).sort((a, b) => b.data.utility - a.data.utility)[0];
+                nextNorms = inEdges.sort((a, b) => b.data.utility - a.data.utility)[0];
             }
 
-            scope._offerABid(nextBid.data, scope);
+            scope._offerABid(nextNorms.data, scope, scope.lastAgentBid);
         }
     }
 
@@ -371,40 +372,15 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
         new PredicateRevision(this._conditions, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
-        // const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
-        // const op3 = new NormExtension().getBidOptions(all_bids, root_bid);
         // const op4 = new NormRevision().getBidOptions(all_bids, root_bid);
-
-        // console.log('Actor-revision:', op1);
-        // console.log('Predicate-revision:', op2);
-        // console.log('Norm-extension:', op3);
-        // console.log('Norm-revision:', op4);
-
-        // op1.concat(op2, op3, op4).forEach(bid => {
-        //     const weight = this.negotiation.agent.preferences.reduce((accumulator, value) => {
-        //         return bid.promotes.some(b => b.id === value.id) ? accumulator + value.weight : accumulator - value.weight;
-        //     }, 0);
-
-        //     scope.graph.addEdge(root_bid, bid, weight);
-        // });
-
-        // const targets = scope.graph.getOutEdges(root_bid);
-
-        // console.log('targets', targets);
-        // console.log('*********');
-
-        // if (!isNullOrUndefined(targets) && targets.length > 0) {
-        //     targets.forEach(target => {
-        //         scope._createOutcomeSpace(all_bids, target.data, scope);
-        //     });
-        // }
     }
 
-    private _offerABid(bid: Bid, scope): void {
+    private _offerABid(norm: Norm, scope, bid: Bid): void {
+        bid.consistOf = [norm];
         scope.lastAgentBid = bid;
 
-        for (const norm of bid.consistOf) {
-            scope.createMessage(norm.toString(), true);
+        for (const norm_ of bid.consistOf) {
+            scope.createMessage(norm_.toString(), true);
         }
 
         scope.negotiation.bids.push(bid);

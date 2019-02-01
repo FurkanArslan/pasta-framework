@@ -27,7 +27,7 @@ export class NormFactoryService {
 
     private _trackNormsChanges(): void {
         this._normSubscription$ = this._norms$.valueChanges().subscribe(norms => {
-            this._norms = norms;
+            this._norms = norms.map(norm => this.getNorm(norm.normType, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent, norm.id));
         });
     }
 
