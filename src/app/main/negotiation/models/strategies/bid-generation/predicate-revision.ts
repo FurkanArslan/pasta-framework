@@ -1,10 +1,202 @@
 import { Bid } from '../../bid.model';
 import { BidGeneration } from './bid-generation';
 import { Norm } from '../../norm/norm.model';
-import { ConditionsData } from '../../data';
+import { FirebaseData } from '../../data';
 import { Consequent } from '../../consequent.model';
+import { NormFactoryService } from 'app/main/negotiation/factories/norm-factory.service';
+import { DirectedGraph } from '../../graph.model';
+import { Value } from '../../value.model';
+import { isNullOrUndefined } from 'util';
+import { NormTypes } from '../../norm/norm-types.enum';
 
 export class PredicateRevision extends BidGeneration {
+
+    private _conditions: FirebaseData[];
+
+    constructor(conditions: FirebaseData[], public normFactoryService: NormFactoryService) {
+        super();
+
+        this._conditions = conditions;
+    }
+
+    public improveBid(bid: Bid, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
+        bid.consistOf.forEach(norm => {
+            const improvingNorms = this._improveNorm(norm);
+
+            improvingNorms.forEach(norm_ => {
+                this._addToGraph(norm, norm_, graph, preferencesOfAgent);
+            });
+        });
+    }
+
+    private _improveNorm(norm: Norm): Norm[] {
+        let improvedNorms = [];
+
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
+
+        if (isPromotes) {
+            if (norm.normType === NormTypes.AUTH) {
+                improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+            } else if (norm.normType === NormTypes.PRO) {
+                improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
+            }
+        }
+
+        if (isDemotes) {
+            if (norm.normType === NormTypes.AUTH) {
+                improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
+            } else if (norm.normType === NormTypes.PRO) {
+                improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+            }
+        }
+
+        return improvedNorms;
+    }
+
+    private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
+        const findPreferenceWeight = (preferenceId): number => {
+            const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
+
+            return !isNullOrUndefined(preference) ? preference.weight : 0;
+        };
+
+        const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+            return accumulator
+                + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + findPreferenceWeight(preferenceId), 0)
+                + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - findPreferenceWeight(preferenceId), 0);
+        }, 0);
+
+        graph.addEdge(root_norm, norm, weight);
+    }
+
+    private _getMoreGeneralNorms(root_norm: Norm): Norm[] {
+        let possibleNorms: Norm[] = [];
+
+        root_norm.hasAntecedent.forEach((oldAntecedent, index) => {
+            const improvements = this._getPossibleIds(oldAntecedent.exclusive, oldAntecedent.equal)
+                .map(id => this._getAntecedent(id))
+                .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
+                    root_norm.normType,
+                    root_norm.hasSubject,
+                    root_norm.hasObject,
+                    root_norm.hasAntecedent.map((value, i) => index === i ? newAntecedent : value),
+                    root_norm.hasConsequent)
+                );
+
+            possibleNorms = possibleNorms.concat(improvements);
+        });
+
+        if (root_norm.hasAntecedent.length >= 2) {
+            for (let index = 0; index < root_norm.hasAntecedent.length; index++) {
+                const tempNorm = this.normFactoryService.getOrCreateNorm(
+                    root_norm.normType,
+                    root_norm.hasSubject,
+                    root_norm.hasObject,
+                    root_norm.hasAntecedent.splice(index, 1),
+                    root_norm.hasConsequent);
+
+                possibleNorms.push(tempNorm);
+            }
+        }
+
+        return possibleNorms;
+    }
+
+    private _getMoreExclusiveNorms(root_norm: Norm): Norm[] {
+        let possibleNorms: Norm[] = [];
+
+        root_norm.hasAntecedent.forEach((oldAntecedent, index) => {
+            const improvements = this._getPossibleIds(oldAntecedent.moreGeneral, oldAntecedent.equal)
+                .map(id => this._getAntecedent(id))
+                .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
+                    root_norm.normType,
+                    root_norm.hasSubject,
+                    root_norm.hasObject,
+                    root_norm.hasAntecedent.map((value, i) => index === i ? newAntecedent : value),
+                    root_norm.hasConsequent)
+                );
+
+            possibleNorms = possibleNorms.concat(improvements);
+        });
+
+        this._conditions.forEach(condition => {
+            if (!this._isIncludeAntecedent(condition, root_norm.hasAntecedent)) {
+                possibleNorms.push(
+                    this.normFactoryService.getOrCreateNorm(
+                        root_norm.normType,
+                        root_norm.hasSubject,
+                        root_norm.hasObject,
+                        root_norm.hasAntecedent.concat(condition),
+                        root_norm.hasConsequent)
+                );
+            }
+        });
+
+        return possibleNorms;
+    }
+
+    private _checkAncestor = (candidate: FirebaseData, antecedent: FirebaseData): boolean => {
+        const ancestors = !isNullOrUndefined(antecedent.exclusive) ? antecedent.exclusive.map(antecedent_ => this._getAntecedent(antecedent_)) : [];
+
+        for (const ancestor of ancestors) {
+            if (ancestor.id === candidate.id) {
+                return true;
+            } else if (!isNullOrUndefined(ancestor.exclusive) && ancestor.exclusive.length > 0) {
+                return this._checkAncestor(candidate, ancestor);
+            }
+        }
+
+        return false;
+    }
+
+    private _isIncludeAntecedent(candidate: FirebaseData, antecedents: FirebaseData[]): boolean {
+        return antecedents.some(antecedent => {
+            return candidate.id === antecedent.id || this._checkAncestor(candidate, antecedent) || this._checkAncestor(antecedent, candidate);
+        });
+    }
+
+    private _isComprise(candidate: FirebaseData, antecedents: FirebaseData[]): boolean {
+        const checkAncestor = (antecedent: FirebaseData): boolean => {
+            const ancestors = !isNullOrUndefined(antecedent.exclusive) ? antecedent.exclusive.map(antecedent_ => this._getAntecedent(antecedent_)) : [];
+
+            for (const ancestor of ancestors) {
+                if (ancestor.id === candidate.id) {
+                    return true;
+                } else if (!isNullOrUndefined(ancestor.exclusive) && ancestor.exclusive.length > 0) {
+                    return checkAncestor(ancestor);
+                }
+            }
+
+            return false;
+        };
+
+        for (const antecedent of antecedents) {
+            const checkIsComprise = checkAncestor(antecedent);
+
+            if (checkIsComprise) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private _getAntecedent(antecedent_id: string): FirebaseData {
+        return this._conditions.find(condition => condition.id === antecedent_id);
+    }
+
+    private _getPossibleIds(array1: string[], array2: string[]): string[] {
+        if (!isNullOrUndefined(array1) && !isNullOrUndefined(array2)) {
+            return array1.concat(array2);
+        } else if (!isNullOrUndefined(array1)) {
+            return array1;
+        } else if (!isNullOrUndefined(array2)) {
+            return array2;
+        } else {
+            return [];
+        }
+    }
 
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
         const filteredBids = availableBids.filter(bid_ => bid_.consistOf.length === bid.consistOf.length); // filter by norms count
@@ -64,7 +256,7 @@ export class PredicateRevision extends BidGeneration {
             norm.normType === norm1.normType;
     }
 
-    private _differenceAntecedent(antecedents1: ConditionsData[], antecedents2: ConditionsData[]): ConditionsData[] {
+    private _differenceAntecedent(antecedents1: FirebaseData[], antecedents2: FirebaseData[]): FirebaseData[] {
         return antecedents1.filter(antecedent1 => !this._isInArray(antecedent1, antecedents2));
     }
 

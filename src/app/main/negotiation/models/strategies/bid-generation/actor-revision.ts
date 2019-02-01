@@ -2,17 +2,17 @@ import { Bid } from '../../bid.model';
 import { BidGeneration } from './bid-generation';
 import { Norm } from '../../norm/norm.model';
 import { NormTypes } from '../../norm/norm-types.enum';
-import { RolesData } from '../../data';
+import { FirebaseData } from '../../data';
 import { NormFactoryService } from 'app/main/negotiation/factories/norm-factory.service';
 import { isNullOrUndefined } from 'util';
 import { DirectedGraph } from '../../graph.model';
 import { Value } from '../../value.model';
 
 export class ActorRevision extends BidGeneration {
-    private _roles: RolesData[];
+    private _roles: FirebaseData[];
     // private _bids: Bid[];
 
-    constructor(roles: RolesData[], public normFactoryService: NormFactoryService) {
+    constructor(roles: FirebaseData[], public normFactoryService: NormFactoryService) {
         super();
 
         this._roles = roles;
@@ -85,7 +85,7 @@ export class ActorRevision extends BidGeneration {
             .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
     }
 
-    private _getRole(role_id: string): RolesData {
+    private _getRole(role_id: string): FirebaseData {
         return this._roles.find(role => role.id === role_id);
     }
 

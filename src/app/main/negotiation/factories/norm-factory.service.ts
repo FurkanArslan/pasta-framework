@@ -4,7 +4,7 @@ import { NormTypes } from '../models/norm/norm-types.enum';
 import { Authorization } from '../models/norm/authorization.model';
 import { Prohibition } from '../models/norm/prohibition.model';
 import { Commitment } from '../models/norm/commitment.model';
-import { RolesData, ConditionsData } from '../models/data';
+import { FirebaseData, FirebaseData } from '../models/data';
 import { Consequent } from '../models/consequent.model';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs/observable';
@@ -37,13 +37,13 @@ export class NormFactoryService {
 
     /**
      * @param  {string} normType
-     * @param  {RolesData} subject
+     * @param  {FirebaseData} subject
      * @param  {string} object
-     * @param  {ConditionsData[]} antecedent
+     * @param  {FirebaseData[]} antecedent
      * @param  {Consequent[]} consequent
      * @returns {Norm}
      */
-    public getNorm(normType: string, subject: RolesData, object: string, antecedent: ConditionsData[], consequent: Consequent[], id?: string): Norm {
+    public getNorm(normType: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[], id?: string): Norm {
         switch (normType) {
             case NormTypes.AUTH: return new Authorization(id, subject, object, antecedent, consequent);
             case NormTypes.PRO: return new Prohibition(id, subject, object, antecedent, consequent);
@@ -54,13 +54,13 @@ export class NormFactoryService {
 
     /**
      * @param  {string} normType
-     * @param  {RolesData} subject
+     * @param  {FirebaseData} subject
      * @param  {string} object
-     * @param  {ConditionsData[]} antecedent
+     * @param  {FirebaseData[]} antecedent
      * @param  {Consequent[]} consequent
      * @returns Norm
      */
-    public getOrCreateNorm(normType: string, subject: RolesData, object: string, antecedent: ConditionsData[], consequent: Consequent[]): Norm {
+    public getOrCreateNorm(normType: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[]): Norm {
         const tempNorm = this.getNorm(normType, subject, object, antecedent, consequent);
 
         const foundedNorm = this._norms.find(norm => BidUtils.isSameNorm(norm, tempNorm));

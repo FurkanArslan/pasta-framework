@@ -1,10 +1,10 @@
-import { DataBase, ActionsData } from './data';
+import { FirebaseData, ActionsData } from './data';
 
 export class Consequent {
-    data: DataBase;
+    data: FirebaseData;
     action: ActionsData;
 
-    constructor(data: DataBase, action: ActionsData) {
+    constructor(data: FirebaseData, action: ActionsData) {
         this.data = data;
         this.action = action;
     }

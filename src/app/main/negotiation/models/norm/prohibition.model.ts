@@ -1,10 +1,10 @@
 import { Norm } from './norm.model';
 import { NormTypes } from './norm-types.enum';
-import { RolesData, ConditionsData } from '../data';
+import { FirebaseData, FirebaseData } from '../data';
 import { Consequent } from '../consequent.model';
 
 export class Prohibition extends Norm {
-    constructor(id: string, subject: RolesData, object: string, antecedent: ConditionsData[], consequent: Consequent[]) {
+    constructor(id: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[]) {
         super(id, subject, object, antecedent, consequent);
 
         this.normType = NormTypes.PRO;

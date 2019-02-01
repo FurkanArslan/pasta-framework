@@ -8,7 +8,7 @@ import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { RolesData, DataBase, ConditionsData, ActionsData } from '../../models/data';
+import { FirebaseData, FirebaseData, FirebaseData, ActionsData } from '../../models/data';
 import { Data } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Subscription, forkJoin, zip } from 'rxjs';
@@ -27,8 +27,8 @@ export class NegotiationInputComponent implements OnInit {
 
     normTypes = NormTypes;
 
-    roles$: Observable<RolesData[]>;
-    conditions$: Observable<ConditionsData[]>;
+    roles$: Observable<FirebaseData[]>;
+    conditions$: Observable<FirebaseData[]>;
 
     consequent: Consequent[] = [];
 
@@ -49,12 +49,12 @@ export class NegotiationInputComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.roles$ = this.afs.collection<RolesData>('roles').valueChanges();
-        this.conditions$ = this.afs.collection<ConditionsData>('conditions').valueChanges();
+        this.roles$ = this.afs.collection<FirebaseData>('roles').valueChanges();
+        this.conditions$ = this.afs.collection<FirebaseData>('conditions').valueChanges();
 
         const zippedCollections$ = zip(
             this.afs.collection<ActionsData>('actions').valueChanges(),
-            this.afs.collection<DataBase>('data').valueChanges())
+            this.afs.collection<FirebaseData>('data').valueChanges())
             .subscribe(results => {
                 const actions = results[0];
                 const data = results[1];
@@ -138,16 +138,16 @@ export class NegotiationInputComponent implements OnInit {
             this._isSameConsequent(norm1.hasConsequent, norm2.hasConsequent);
     }
 
-    private _isSameArray(items1: DataBase[], items2: DataBase[]): boolean {
+    private _isSameArray(items1: FirebaseData[], items2: FirebaseData[]): boolean {
         return items1.every(item => this._isInArray(item, items2)) &&
             items2.every(item => this._isInArray(item, items1));
     }
 
-    private _isInArray(item: DataBase, items2: DataBase[]): boolean {
+    private _isInArray(item: FirebaseData, items2: FirebaseData[]): boolean {
         return items2.some(item_ => this._isSameItem(item_, item));
     }
 
-    private _isSameItem(item1: DataBase, item2: DataBase): boolean {
+    private _isSameItem(item1: FirebaseData, item2: FirebaseData): boolean {
         return item1.id === item2.id;
     }
 

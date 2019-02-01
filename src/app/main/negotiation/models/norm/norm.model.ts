@@ -1,18 +1,18 @@
 import { NormTypes } from './norm-types.enum';
-import { RolesData, ConditionsData } from '../data';
+import { FirebaseData, FirebaseData } from '../data';
 import { Consequent } from '../consequent.model';
 import { FuseUtils } from '@fuse/utils';
 
 export abstract class Norm {
     id: string;
-    hasSubject: RolesData;
+    hasSubject: FirebaseData;
     hasObject: string;
-    hasAntecedent: ConditionsData[];
+    hasAntecedent: FirebaseData[];
     hasConsequent: Consequent[];
     normType: NormTypes;
     private _utilityValue: number;
 
-    constructor(id: string, subject: RolesData, object: string, antecedent: ConditionsData[], consequent: Consequent[]) {
+    constructor(id: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[]) {
         this.id = id;
         this.hasSubject = subject;
         this.hasObject = object;

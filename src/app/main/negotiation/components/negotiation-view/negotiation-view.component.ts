@@ -19,10 +19,10 @@ import { NormExtension } from '../../models/strategies/bid-generation/norm-exten
 import { ActorRevision } from '../../models/strategies/bid-generation/actor-revision';
 import { PredicateRevision } from '../../models/strategies/bid-generation/predicate-revision';
 import { Value } from '../../models/value.model';
-import { AngularFirestore } from '@angular/fire/firestore';
+import { AngularFirestore, QuerySnapshot, QueryDocumentSnapshot } from '@angular/fire/firestore';
 
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
-import { RolesData } from '../../models/data';
+import { FirebaseData, FirebaseData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 
 @Component({
@@ -55,7 +55,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     // Private
     private _unsubscribeAll: Subject<any>;
     private bids: Bid[] = [];
-    private roles: RolesData[] = [];
+    private _roles: FirebaseData[] = [];
+    private _conditions: FirebaseData[];
     private lastAgentBid: Bid[] = null;
     graph: DirectedGraph;
 
@@ -116,8 +117,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
         });
 
-        this.afs.collection<RolesData>('roles').valueChanges().subscribe(roles => {
-            this.roles = roles;
+        this.afs.collection<FirebaseData>('roles').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+            this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
+        });
+
+        this.afs.collection<FirebaseData>('conditions').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+            this._conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
     }
 
@@ -363,8 +368,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, scope): void {
         console.log('Root-bid:', root_bid.consistOf);
-        
-        new ActorRevision(this.roles, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
+
+        new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
+        new PredicateRevision(this._conditions, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
         // const op2 = new PredicateRevision().getBidOptions(all_bids, root_bid);
         // const op3 = new NormExtension().getBidOptions(all_bids, root_bid);
         // const op4 = new NormRevision().getBidOptions(all_bids, root_bid);

@@ -1,5 +1,5 @@
 import { Bid } from '../../bid.model';
-import { DataBase } from '../../data';
+import { FirebaseData } from '../../data';
 import { Norm } from '../../norm/norm.model';
 import { Consequent } from '../../consequent.model';
 
@@ -26,16 +26,16 @@ export abstract class BidGeneration {
             this._isSameConsequent(norm1.hasConsequent, norm2.hasConsequent);
     }
 
-    protected _isSameArray(items1: DataBase[], items2: DataBase[]): boolean {
+    protected _isSameArray(items1: FirebaseData[], items2: FirebaseData[]): boolean {
         return items1.every(item => this._isInArray(item, items2)) &&
             items2.every(item => this._isInArray(item, items1));
     }
 
-    protected _isInArray(item: DataBase, items2: DataBase[]): boolean {
+    protected _isInArray(item: FirebaseData, items2: FirebaseData[]): boolean {
         return items2.some(item_ => this._isSameItem(item_, item));
     }
 
-    protected _isSameItem(item1: DataBase, item2: DataBase): boolean {
+    protected _isSameItem(item1: FirebaseData, item2: FirebaseData): boolean {
         return item1.id === item2.id;
     }
 
