@@ -4,7 +4,7 @@ import { NormTypes } from '../models/norm/norm-types.enum';
 import { Authorization } from '../models/norm/authorization.model';
 import { Prohibition } from '../models/norm/prohibition.model';
 import { Commitment } from '../models/norm/commitment.model';
-import { FirebaseData, FirebaseData } from '../models/data';
+import { FirebaseData } from '../models/data';
 import { Consequent } from '../models/consequent.model';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs/observable';

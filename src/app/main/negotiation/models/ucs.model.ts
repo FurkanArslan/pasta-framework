@@ -48,41 +48,41 @@ class PriorityQueue {
 }
 
 export class UniformCostSearch {
-    private nodes: PriorityQueue;
+    // private nodes: PriorityQueue;
 
-    infinity = 1 / 0;
+    // infinity = 1 / 0;
 
-    constructor() {
-        this.nodes = new PriorityQueue();
-    }
+    // constructor() {
+    //     this.nodes = new PriorityQueue();
+    // }
 
-    public getShortestPath(root: Bid, goal: Bid, graph: DirectedGraph): void {
-        const previous = {}, path = [];
+    // public getShortestPath(root: Bid, goal: Bid, graph: DirectedGraph): void {
+    //     const previous = {}, path = [];
 
-        this.nodes.enqueue(0, root);
-        previous[root.id] = null;
+    //     this.nodes.enqueue(0, root);
+    //     previous[root.id] = null;
 
-        while (!this.nodes.isEmpty) {
-            let smallest = this.nodes.dequeue();
+    //     while (!this.nodes.isEmpty) {
+    //         let smallest = this.nodes.dequeue();
 
-            if (smallest.key.id === goal.id) {
-                // Compute the path
-                while (previous[smallest.key.id]) {
-                    path.push(smallest.key);
-                    smallest = previous[smallest.key.id];
-                }
-                break;
-            } else {
-                const children = graph.getOutEdges(smallest.key);
+    //         if (smallest.key.id === goal.id) {
+    //             // Compute the path
+    //             while (previous[smallest.key.id]) {
+    //                 path.push(smallest.key);
+    //                 smallest = previous[smallest.key.id];
+    //             }
+    //             break;
+    //         } else {
+    //             // const children = graph.getOutEdges(smallest.key);
 
-                for (const child of children) {
-                    const cost = smallest.priority + child.weight;
-                    previous[child.data.id] = smallest;
-                    this.nodes.enqueue(cost, child.data);
-                }
-            }
-        }
+    //             for (const child of children) {
+    //                 const cost = smallest.priority + child.weight;
+    //                 previous[child.data.id] = smallest;
+    //                 // this.nodes.enqueue(cost, child.data);
+    //             }
+    //         }
+    //     }
 
-        console.log(path.concat(root).reverse());
-    }
+    //     console.log(path.concat(root).reverse());
+    // }
 }

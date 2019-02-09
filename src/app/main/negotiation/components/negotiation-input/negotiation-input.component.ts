@@ -8,7 +8,7 @@ import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { FirebaseData, FirebaseData, FirebaseData, ActionsData } from '../../models/data';
+import { FirebaseData, ActionsData } from '../../models/data';
 import { Data } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Subscription, forkJoin, zip } from 'rxjs';

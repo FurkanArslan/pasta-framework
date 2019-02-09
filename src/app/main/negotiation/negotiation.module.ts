@@ -22,6 +22,8 @@ import { BidGenerationComponent } from './components/bid-generation/bid-generati
 import { PromotionAndDemotionSelectionComponent } from './components/promotion-and-demotion-selection/promotion-and-demotion-selection.component';
 import { PreferencesSelectionComponent } from './components/preferences-selection/preferences-selection.component';
 import { ContinueOrExitComponent } from './components/continue-or-exit/continue-or-exit.component';
+import { DrawGraphComponent } from './components/draw-graph/draw-graph.component';
+import { GraphRendererComponent } from './components/draw-graph/graph-renderer/graph-renderer.component';
 
 const routes: Routes = [
     {
@@ -31,43 +33,48 @@ const routes: Routes = [
             { path: '', component: NegotiationViewComponent },
             { path: 'bid-generation', component: BidGenerationComponent },
         ]
+    },
+    {
+        path: 'draw-bid-graph',
+        component: DrawGraphComponent
     }
 ];
 
 @NgModule({
-    declarations: [
-        NegotiationComponent,
-        NegotiationViewComponent,
-        NegotiationInputComponent,
-        BidGenerationComponent,
-        PromotionAndDemotionSelectionComponent,
-        PreferencesSelectionComponent,
-        ContinueOrExitComponent,
-        EnumToArrayPipe
-    ],
-    imports     : [
-        RouterModule.forChild(routes),
-
-        MatButtonModule,
-        MatCardModule,
-        MatFormFieldModule,
-        MatIconModule,
-        MatInputModule,
-        MatListModule,
-        MatMenuModule,
-        MatRadioModule,
-        MatSidenavModule,
-        MatToolbarModule,
-        FuseSharedModule,
-        MatSelectModule,
-        MatSliderModule,
-        MatTooltipModule
-    ],
-    providers   : [
-        NegotiationService,
-        ScenarioFactoryService,
-        NormFactoryService
-    ]
+   declarations: [
+      NegotiationComponent,
+      NegotiationViewComponent,
+      NegotiationInputComponent,
+      BidGenerationComponent,
+      PromotionAndDemotionSelectionComponent,
+      PreferencesSelectionComponent,
+      ContinueOrExitComponent,
+      EnumToArrayPipe,
+      DrawGraphComponent,
+      GraphRendererComponent
+   ],
+   imports: [
+      RouterModule.forChild(routes),
+      MatButtonModule,
+      MatCardModule,
+      MatFormFieldModule,
+      MatIconModule,
+      MatInputModule,
+      MatListModule,
+      MatMenuModule,
+      MatRadioModule,
+      MatSidenavModule,
+      MatToolbarModule,
+      FuseSharedModule,
+      MatSelectModule,
+      MatSliderModule,
+      MatTooltipModule
+   ],
+   providers: [
+      NegotiationService,
+      ScenarioFactoryService,
+      NormFactoryService
+   ]
 })
 export class NegotiationModule
 {

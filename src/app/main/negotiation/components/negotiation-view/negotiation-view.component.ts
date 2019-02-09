@@ -22,7 +22,7 @@ import { Value } from '../../models/value.model';
 import { AngularFirestore, QuerySnapshot, QueryDocumentSnapshot } from '@angular/fire/firestore';
 
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
-import { FirebaseData, FirebaseData } from '../../models/data';
+import { FirebaseData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 
@@ -349,7 +349,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             const user_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
             scope.graph = new DirectedGraph();
 
-            scope._createOutcomeSpace(scope.bids, user_bid, scope);
+            scope._createOutcomeSpace(user_bid, scope);
 
             console.log(scope.graph.leaves);
 
@@ -367,12 +367,24 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         }
     }
 
-    private _createOutcomeSpace(all_bids: Bid[], root_bid: Bid, scope): void {
+    private _createOutcomeSpace(root_bid: Bid, scope): void {
         console.log('Root-bid:', root_bid.consistOf);
 
-        new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
-        new PredicateRevision(this._conditions, this.normFactoryService).improveBid(root_bid, scope.graph, this.negotiation.agent.preferences);
-        // const op4 = new NormRevision().getBidOptions(all_bids, root_bid);
+        new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+        new PredicateRevision(this._conditions, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+        new NormRevision(this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+
+        const targets = scope.graph.getOutEdges(root_bid.consistOf);
+
+        console.log('targets', targets);
+        console.log('*********');
+
+        if (!isNullOrUndefined(targets) && targets.length > 0) {
+            targets.forEach(target => {
+                root_bid.consistOf = [target.data];
+                scope._createOutcomeSpace(root_bid, scope);
+            });
+        }
     }
 
     private _offerABid(norm: Norm, scope, bid: Bid): void {

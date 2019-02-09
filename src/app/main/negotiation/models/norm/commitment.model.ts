@@ -1,6 +1,6 @@
 import { Norm } from './norm.model';
 import { NormTypes } from './norm-types.enum';
-import { FirebaseData, FirebaseData } from '../data';
+import { FirebaseData } from '../data';
 import { Consequent } from '../consequent.model';
 
 export class Commitment extends Norm {

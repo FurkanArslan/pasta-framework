@@ -1,8 +1,68 @@
 import { BidGeneration } from './bid-generation';
 import { Bid } from '../../bid.model';
 import { Norm } from '../../norm/norm.model';
+import { DirectedGraph } from '../../graph.model';
+import { Value } from '../../value.model';
+import { isNullOrUndefined } from 'util';
+import { NormTypes } from '../../norm/norm-types.enum';
+import { NormFactoryService } from 'app/main/negotiation/factories/norm-factory.service';
 
 export class NormRevision extends BidGeneration {
+
+    constructor(public normFactoryService: NormFactoryService) {
+        super();
+    }
+
+    public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
+        norms.forEach(norm => {
+            const improvingNorm = this._improveNorm(norm);
+
+            this._addToGraph(norm, improvingNorm, graph, preferencesOfAgent);
+        });
+    }
+
+    private _improveNorm(norm: Norm): Norm {
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
+
+        if (isPromotes && norm.normType === NormTypes.PRO) {
+            return this.normFactoryService.getOrCreateNorm(NormTypes.AUTH, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
+        }
+
+        if (isDemotes && norm.normType === NormTypes.AUTH) {
+            return this.normFactoryService.getOrCreateNorm(NormTypes.PRO, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
+        }
+    }
+
+    private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
+        const findPreferenceWeight = (preferenceId): number => {
+            const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
+
+            return !isNullOrUndefined(preference) ? preference.weight : 0;
+        };
+
+        const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+            return accumulator
+                + cons.action.promotes.reduce((accumulator_, preferenceId) => this._getPromotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0)
+                + cons.action.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
+        }, 0);
+
+        graph.addEdge(root_norm, norm, weight);
+    }
+
+    private _getPromotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
+        switch (normType) {
+            case NormTypes.AUTH: return total + preferenceValue;
+            case NormTypes.PRO: return total - preferenceValue;
+        }
+    }
+
+    private _getDemotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
+        switch (normType) {
+            case NormTypes.AUTH: return total - preferenceValue;
+            case NormTypes.PRO: return total + preferenceValue;
+        }
+    }
 
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
         return availableBids

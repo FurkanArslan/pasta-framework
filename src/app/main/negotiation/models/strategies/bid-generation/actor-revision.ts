@@ -18,8 +18,8 @@ export class ActorRevision extends BidGeneration {
         this._roles = roles;
     }
 
-    public improveBid(bid: Bid, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        bid.consistOf.forEach(norm => {
+    public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
+        norms.forEach(norm => {
             const improvingNorms = this._improveNorm(norm);
 
             improvingNorms.forEach(norm_ => {
@@ -62,11 +62,25 @@ export class ActorRevision extends BidGeneration {
 
         const weight = norm.hasConsequent.reduce((accumulator, cons) => {
             return accumulator
-               + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + findPreferenceWeight(preferenceId), 0)
-               + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - findPreferenceWeight(preferenceId), 0);
+                + cons.action.promotes.reduce((accumulator_, preferenceId) => this._getPromotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0)
+                + cons.action.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
         }, 0);
 
         graph.addEdge(root_norm, norm, weight);
+    }
+
+    private _getPromotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
+        switch (normType) {
+            case NormTypes.AUTH: return total + preferenceValue;
+            case NormTypes.PRO: return total - preferenceValue;
+        }
+    }
+
+    private _getDemotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
+        switch (normType) {
+            case NormTypes.AUTH: return total - preferenceValue;
+            case NormTypes.PRO: return total + preferenceValue;
+        }
     }
 
     private _getMoreGeneralNorms(norm: Norm): Norm[] {
