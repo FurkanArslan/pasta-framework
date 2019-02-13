@@ -15,6 +15,6 @@ export class Authorization extends Norm {
     }
 
     public toNormRepresentation(): string {
-        return `A(${this.hasSubject.shortName}, HA, ${this.compoundConsequentWithShortName}, ${this.compoundAntecedentWithShortName})`;
+        return `A(${this.hasSubject.shortName}, HA, ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName}):${this.utility}`;
     }
 }

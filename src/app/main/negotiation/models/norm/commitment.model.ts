@@ -8,7 +8,7 @@ export class Commitment extends Norm {
     constructor(id: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[]) {
         super(id, subject, object, antecedent, consequent);
 
-        this.normType = NormTypes.COM;
+        // this.normType = NormTypes.COM;
     }
 
     public toString(): string {

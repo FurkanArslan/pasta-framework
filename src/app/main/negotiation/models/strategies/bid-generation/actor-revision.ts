@@ -29,25 +29,21 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        let improvedNorms = [];
-
         const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
         const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
                 // improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
                 });
-
-
             }
             //  else if (norm.normType === NormTypes.PRO) {
             //     improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
@@ -56,11 +52,11 @@ export class ActorRevision extends BidGeneration {
 
         if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -129,9 +125,16 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _getEqualNorms(norm: Norm): Norm[] {
-        return norm.hasSubject.equal
-            .map(id => this._getRole(id))
-            .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+
+        try {
+            return norm.hasSubject.equal
+                .map(id => this._getRole(id))
+                .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+        } catch (error) {
+            console.log(norm.hasSubject);
+            return [];
+        }
+
     }
 
     private _getRole(role_id: string): FirebaseData {

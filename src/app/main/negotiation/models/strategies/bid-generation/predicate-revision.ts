@@ -21,38 +21,84 @@ export class PredicateRevision extends BidGeneration {
 
     public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         norms.forEach(norm => {
-            const improvingNorms = this._improveNorm(norm);
+            this._improveNorm(norm, graph, preferencesOfAgent);
 
-            improvingNorms.forEach(norm_ => {
-                this._addToGraph(norm, norm_, graph, preferencesOfAgent);
-            });
+            // improvingNorms.forEach(norm_ => {
+            //     this._addToGraph(norm, norm_, graph, preferencesOfAgent);
+            // });
         });
     }
 
-    private _improveNorm(norm: Norm): Norm[] {
-        let improvedNorms = [];
-
+    private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
         const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
-                improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-            } else if (norm.normType === NormTypes.PRO) {
-                improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
+                // improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
+                });
+
             }
+            //  else if (norm.normType === NormTypes.PRO) {
+            //     improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
+            // }
         }
 
         if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
-                improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
-            } else if (norm.normType === NormTypes.PRO) {
-                improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
+                });
             }
+            // else if (norm.normType === NormTypes.PRO) {
+            //     improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+            // }
         }
 
-        return improvedNorms;
+        this._getEqualNorms(norm).forEach(norm_ => {
+            graph.addEdge(norm, norm_, 0, `PR(0)`);
+        });
     }
+
+    private _getEqualNorms(norm: Norm): Norm[] {
+        let possibleNorms: Norm[] = [];
+
+        norm.hasAntecedent.forEach((oldAntecedent, index) => {
+            const improvements = this._getPossibleIds(oldAntecedent.equal)
+                .map(id => this._getAntecedent(id))
+                .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
+                    norm.normType,
+                    norm.hasSubject,
+                    norm.hasObject,
+                    norm.hasAntecedent.map((value, i) => index === i ? newAntecedent : value),
+                    norm.hasConsequent)
+                );
+
+            possibleNorms = possibleNorms.concat(improvements);
+        });
+
+        return possibleNorms;
+    }
+
+    private _findPreferenceWeight(preferenceId, preferencesOfAgent): number {
+        const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
+
+        return !isNullOrUndefined(preference) ? preference.weight : 0;
+    };
 
     private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         const findPreferenceWeight = (preferenceId): number => {
@@ -89,7 +135,7 @@ export class PredicateRevision extends BidGeneration {
         let possibleNorms: Norm[] = [];
 
         root_norm.hasAntecedent.forEach((oldAntecedent, index) => {
-            const improvements = this._getPossibleIds(oldAntecedent.exclusive, oldAntecedent.equal)
+            const improvements = this._getPossibleIds(oldAntecedent.exclusive)
                 .map(id => this._getAntecedent(id))
                 .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
                     root_norm.normType,
@@ -122,7 +168,7 @@ export class PredicateRevision extends BidGeneration {
         let possibleNorms: Norm[] = [];
 
         root_norm.hasAntecedent.forEach((oldAntecedent, index) => {
-            const improvements = this._getPossibleIds(oldAntecedent.moreGeneral, oldAntecedent.equal)
+            const improvements = this._getPossibleIds(oldAntecedent.moreGeneral)
                 .map(id => this._getAntecedent(id))
                 .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
                     root_norm.normType,
@@ -201,7 +247,7 @@ export class PredicateRevision extends BidGeneration {
         return this._conditions.find(condition => condition.id === antecedent_id);
     }
 
-    private _getPossibleIds(array1: string[], array2: string[]): string[] {
+    private _getPossibleIds(array1: string[], array2?: string[]): string[] {
         if (!isNullOrUndefined(array1) && !isNullOrUndefined(array2)) {
             return array1.concat(array2);
         } else if (!isNullOrUndefined(array1)) {

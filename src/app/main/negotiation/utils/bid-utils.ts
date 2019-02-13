@@ -22,7 +22,12 @@ export class BidUtils {
     }
 
     public static isSameItem(item1: FirebaseData, item2: FirebaseData): boolean {
-        return item1.id === item2.id;
+        try {
+            return item1.id === item2.id;
+        } catch (error) {
+            console.log(item1, item2);
+        }
+
     }
 
     public static isSameConsequent(consequentList1: Consequent[], consequentList2: Consequent[]): boolean {

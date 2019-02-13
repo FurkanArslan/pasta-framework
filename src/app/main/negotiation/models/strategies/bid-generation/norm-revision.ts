@@ -15,23 +15,45 @@ export class NormRevision extends BidGeneration {
 
     public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         norms.forEach(norm => {
-            const improvingNorm = this._improveNorm(norm);
+            this._improveNorm(norm, graph, preferencesOfAgent);
 
-            this._addToGraph(norm, improvingNorm, graph, preferencesOfAgent);
+            // this._addToGraph(norm, improvingNorm, graph, preferencesOfAgent);
         });
     }
 
-    private _improveNorm(norm: Norm): Norm {
+    private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
         const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
 
         if (isPromotes && norm.normType === NormTypes.PRO) {
-            return this.normFactoryService.getOrCreateNorm(NormTypes.AUTH, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
+            const newNorm = this.normFactoryService.getOrCreateNorm(NormTypes.AUTH, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
+
+            const weight = newNorm.hasConsequent.reduce((accumulator, cons) => {
+                return accumulator
+                    + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                    + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+            }, 0);
+
+            graph.addEdge(norm, newNorm, +weight.toFixed(2), `NR(${weight.toFixed(2)})`);
         }
 
         if (isDemotes && norm.normType === NormTypes.AUTH) {
-            return this.normFactoryService.getOrCreateNorm(NormTypes.PRO, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
+            const newNorm = this.normFactoryService.getOrCreateNorm(NormTypes.PRO, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
+
+            const weight = newNorm.hasConsequent.reduce((accumulator, cons) => {
+                return accumulator
+                    + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                    + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+            }, 0);
+
+            graph.addEdge(norm, newNorm, +weight.toFixed(2), `NR(${weight.toFixed(2)})`);
         }
+    }
+
+    private _findPreferenceWeight(preferenceId, preferencesOfAgent: Value[]): number {
+        const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
+
+        return !isNullOrUndefined(preference) ? preference.weight : 0;
     }
 
     private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {

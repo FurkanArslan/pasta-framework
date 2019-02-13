@@ -51,7 +51,8 @@ export class GraphRendererComponent implements OnChanges {
                 'text-outline-color': 'data(colorCode)',
                 'background-color': 'data(colorCode)',
                 'color': '#fff',
-                'font-size': 8
+                'font-size': 7,
+                'white-space': 'pre-line'
             })
             .selector(':selected')
             .css({
@@ -101,20 +102,20 @@ export class GraphRendererComponent implements OnChanges {
             elements: this.elements,
         });
 
-        // cy.on('tap', 'node', e => {
-        //     const node = e.cyTarget;
-        //     const neighborhood = node.neighborhood().add(node);
+        cy.on('tap', 'node', e => {
+            const node = e.cyTarget;
+            const neighborhood = node.neighborhood().add(node);
 
-        //     cy.elements().addClass('faded');
-        //     neighborhood.removeClass('faded');
-        //     localselect.emit(node.data('name'));
-        // });
+            cy.elements().addClass('faded');
+            neighborhood.removeClass('faded');
+            // localselect.emit(node.data('name'));
+        });
 
-        // cy.on('tap', e => {
-        //     if (e.cyTarget === cy) {
-        //         cy.elements().removeClass('faded');
-        //     }
-        // });
+        cy.on('tap', e => {
+            if (e.cyTarget === cy) {
+                cy.elements().removeClass('faded');
+            }
+        });
     }
 
 }

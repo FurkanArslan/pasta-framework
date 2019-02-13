@@ -15,6 +15,7 @@ export class Prohibition extends Norm {
     }
 
     public toNormRepresentation(): string {
-        return `C(${this.hasSubject.name}, ${this.hasObject}, ${this.compoundConsequent}, ${this.compoundAntecedent})`;
+        return `P(${this.hasSubject.shortName}, HA, not ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName}):${this.utility}`;
     }
+
 }

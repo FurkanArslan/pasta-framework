@@ -47,7 +47,7 @@ export class NormFactoryService {
         switch (normType) {
             case NormTypes.AUTH: return new Authorization(id, subject, object, antecedent, consequent);
             case NormTypes.PRO: return new Prohibition(id, subject, object, antecedent, consequent);
-            case NormTypes.COM: return new Commitment(id, subject, object, antecedent, consequent);
+            // case NormTypes.COM: return new Commitment(id, subject, object, antecedent, consequent);
             default: return null;
         }
     }
