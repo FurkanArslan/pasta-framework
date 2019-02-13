@@ -23,9 +23,19 @@ export abstract class Norm {
     get compoundConsequent(): string {
         return this.hasConsequent.reduce((consequent_, currentValue, currentIndex) => {
             if (currentIndex === 0) {
-                return `${currentValue.action.name.toLowerCase()} ${currentValue.data.name.toLowerCase()}`;
+                return `${currentValue.action.name.toLowerCase()}${currentValue.data.name.toLowerCase()}`;
             } else{
-                return `${consequent_} and ${currentValue.action.name.toLowerCase()} ${currentValue.data.name.toLowerCase()}`;
+                return `${consequent_} and ${currentValue.action.name.toLowerCase()}${currentValue.data.name.toLowerCase()}`;
+            }
+        }, '');
+    }
+
+    get compoundConsequentWithShortName(): string {
+        return this.hasConsequent.reduce((consequent_, currentValue, currentIndex) => {
+            if (currentIndex === 0) {
+                return `${currentValue.action.shortName}${currentValue.data.shortName}`;
+            } else{
+                return `${consequent_} & ${currentValue.action.shortName}${currentValue.data.shortName}`;
             }
         }, '');
     }
@@ -33,6 +43,12 @@ export abstract class Norm {
     get compoundAntecedent(): string {
         return this.hasAntecedent.reduce((antecedent_, currentValue, currentIndex) => {
             return currentIndex === 0 ? currentValue.name : ` ${antecedent_} and ${currentValue.name}`;
+        }, '');
+    }
+
+    get compoundAntecedentWithShortName(): string {
+        return this.hasAntecedent.reduce((antecedent_, currentValue, currentIndex) => {
+            return currentIndex === 0 ? currentValue.shortName : ` ${antecedent_} & ${currentValue.shortName}`;
         }, '');
     }
 
@@ -47,4 +63,5 @@ export abstract class Norm {
     }
 
     public abstract toString(): string;
+    public abstract toNormRepresentation(): string;
 }

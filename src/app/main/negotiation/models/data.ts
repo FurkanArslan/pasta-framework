@@ -5,6 +5,7 @@ export interface FirebaseData {
     moreGeneral?: string[];
     exclusive?: string[];
     equal?: string[];
+    shortName?: string;
 }
 
 export interface Data extends FirebaseData {

@@ -4,6 +4,7 @@ import { FirebaseData } from '../data';
 import { Consequent } from '../consequent.model';
 
 export class Commitment extends Norm {
+    
     constructor(id: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[]) {
         super(id, subject, object, antecedent, consequent);
 
@@ -12,5 +13,9 @@ export class Commitment extends Norm {
 
     public toString(): string {
         return `${this.hasSubject.name} is committed to ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
+    }
+
+    public toNormRepresentation(): string {
+        throw new Error("Method not implemented.");
     }
 }

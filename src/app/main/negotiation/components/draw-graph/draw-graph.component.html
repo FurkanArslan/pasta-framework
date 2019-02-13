@@ -47,7 +47,7 @@
     <!-- </div> -->
 
 
-    <div style="height: 90%; width: 80%; float: left; overflow: auto; overflow-y: hidden">
+    <div style="height: 90%; width: 80%; float: left; overflow: auto; overflow-y: hidden" *ngIf="graphData.nodes != null">
         <app-graph-renderer [elements]="graphData" [layout]="layout"></app-graph-renderer>
     </div>
 </section>

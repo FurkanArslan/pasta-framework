@@ -13,4 +13,8 @@ export class Authorization extends Norm {
     public toString(): string {
         return `${this.hasSubject.name} is authorized by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
     }
+
+    public toNormRepresentation(): string {
+        return `A(${this.hasSubject.shortName}, HA, ${this.compoundConsequentWithShortName}, ${this.compoundAntecedentWithShortName})`;
+    }
 }

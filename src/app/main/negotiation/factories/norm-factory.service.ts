@@ -71,6 +71,7 @@ export class NormFactoryService {
             tempNorm.id = this.afs.createId();
             const convertedData = JSON.parse(JSON.stringify(tempNorm));
             this._norms$.doc(tempNorm.id).set(convertedData);
+            this._norms.push(tempNorm);
 
             return tempNorm;
         }

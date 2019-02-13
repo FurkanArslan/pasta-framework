@@ -20,15 +20,15 @@ export class ActorRevision extends BidGeneration {
 
     public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         norms.forEach(norm => {
-            const improvingNorms = this._improveNorm(norm);
+            this._improveNorm(norm, graph, preferencesOfAgent);
 
-            improvingNorms.forEach(norm_ => {
-                this._addToGraph(norm, norm_, graph, preferencesOfAgent);
-            });
+            // improvingNorms.forEach(norm_ => {
+            //     this._addToGraph(norm, norm_, graph, preferencesOfAgent);
+            // });
         });
     }
 
-    private _improveNorm(norm: Norm): Norm[] {
+    private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         let improvedNorms = [];
 
         const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
@@ -36,22 +36,51 @@ export class ActorRevision extends BidGeneration {
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
-                improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-            } else if (norm.normType === NormTypes.PRO) {
-                improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
+                // improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
+                });
+
+
             }
+            //  else if (norm.normType === NormTypes.PRO) {
+            //     improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
+            // }
         }
 
         if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
-                improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
-            } else if (norm.normType === NormTypes.PRO) {
-                improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
+                });
             }
+            // else if (norm.normType === NormTypes.PRO) {
+            //     improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
+            // }
         }
 
-        return improvedNorms;
+        this._getEqualNorms(norm).forEach(norm_ => {
+            graph.addEdge(norm, norm_, 0, `AR(0)`);
+        });
     }
+
+    private _findPreferenceWeight(preferenceId, preferencesOfAgent): number {
+        const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
+
+        return !isNullOrUndefined(preference) ? preference.weight : 0;
+    };
 
     private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         const findPreferenceWeight = (preferenceId): number => {
@@ -66,7 +95,7 @@ export class ActorRevision extends BidGeneration {
                 + cons.action.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
         }, 0);
 
-        graph.addEdge(root_norm, norm, weight);
+        graph.addEdge(root_norm, norm, weight, `ar-${weight}`);
     }
 
     private _getPromotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
@@ -84,7 +113,7 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _getMoreGeneralNorms(norm: Norm): Norm[] {
-        const possibleNormIds = this._getPossibleIds(norm.hasSubject.moreGeneral, norm.hasSubject.equal);
+        const possibleNormIds = this._getPossibleIds(norm.hasSubject.moreGeneral);
 
         return possibleNormIds
             .map(id => this._getRole(id))
@@ -92,9 +121,15 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _getMoreExclusiveNorms(norm: Norm): Norm[] {
-        const possibleNormIds = this._getPossibleIds(norm.hasSubject.exclusive, norm.hasSubject.equal);
+        const possibleNormIds = this._getPossibleIds(norm.hasSubject.exclusive);
 
         return possibleNormIds
+            .map(id => this._getRole(id))
+            .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+    }
+
+    private _getEqualNorms(norm: Norm): Norm[] {
+        return norm.hasSubject.equal
             .map(id => this._getRole(id))
             .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
     }
@@ -103,7 +138,7 @@ export class ActorRevision extends BidGeneration {
         return this._roles.find(role => role.id === role_id);
     }
 
-    private _getPossibleIds(array1: string[], array2: string[]): string[] {
+    private _getPossibleIds(array1: string[], array2?: string[]): string[] {
         if (!isNullOrUndefined(array1) && !isNullOrUndefined(array2)) {
             return array1.concat(array2);
         } else if (!isNullOrUndefined(array1)) {

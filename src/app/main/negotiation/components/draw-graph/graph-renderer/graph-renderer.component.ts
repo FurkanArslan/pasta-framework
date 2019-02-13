@@ -51,7 +51,7 @@ export class GraphRendererComponent implements OnChanges {
                 'text-outline-color': 'data(colorCode)',
                 'background-color': 'data(colorCode)',
                 'color': '#fff',
-                'font-size': 10
+                'font-size': 8
             })
             .selector(':selected')
             .css({
@@ -63,10 +63,14 @@ export class GraphRendererComponent implements OnChanges {
                 'curve-style': 'bezier',
                 'opacity': 0.666,
                 'width': 'mapData(strength, 70, 100, 2, 6)',
+                'content': 'data(name)',
+                'source-text-offset': '10',
+                'source-text-margin-y': '10',
                 'target-arrow-shape': 'triangle',
                 'line-color': 'data(colorCode)',
                 'source-arrow-color': 'data(colorCode)',
-                'target-arrow-color': 'data(colorCode)'
+                'target-arrow-color': 'data(colorCode)',
+                'font-size': 8
             })
             .selector('edge.questionable')
             .css({

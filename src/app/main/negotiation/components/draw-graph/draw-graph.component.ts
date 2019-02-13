@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { NormTypes } from '../../models/norm/norm-types.enum';
 import { Observable, Subscription, zip } from 'rxjs';
 import { FirebaseData, ActionsData } from '../../models/data';
@@ -38,10 +38,10 @@ export class DrawGraphComponent implements OnInit {
     private _conditions: FirebaseData[];
 
     private preferences: Value[] = [
-        { id: '1', name: 'Privacy', weight: 0.6 },
-        { id: '2', name: 'Security', weight: 0.2 },
+        { id: '8GO8n36e03YsGJVgyWMw', name: 'Privacy', weight: 0.6 },
+        { id: 'jiqjSieoLhp3amXZqkhh', name: 'Security', weight: 0.2 },
         // { id: '3', name: 'Safety', weight: 0.1 },
-        { id: '4', name: 'Reputation', weight: 0.2 },
+        { id: 'IdmViauumPNyrSIEYPB0', name: 'Reputation', weight: 0.2 },
     ];
 
     node_name: string;
@@ -54,30 +54,36 @@ export class DrawGraphComponent implements OnInit {
     };
 
     graphData = {
-        nodes: [
-            { data: { id: 'a', name: 'Signup', weight: 100, colorCode: 'blue', shapeType: 'roundrectangle' } },
-            { data: { id: 'b', name: 'User Profile', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
-            { data: { id: 'c', name: 'Billing', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
-            { data: { id: 'd', name: 'Sales', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
-            { data: { id: 'e', name: 'Referral', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
-            { data: { id: 'f', name: 'Loan', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
-            { data: { id: 'j', name: 'Support', weight: 100, colorCode: 'red', shapeType: 'ellipse' } },
-            { data: { id: 'k', name: 'Sink Event', weight: 100, colorCode: 'green', shapeType: 'ellipse' } }
-        ],
-        edges: [
-            { data: { source: 'a', target: 'b', strength: 10 } },
-            { data: { source: 'b', target: 'c', strength: 10 } },
-            { data: { source: 'c', target: 'd', strength: 10 } },
-            { data: { source: 'c', target: 'e', strength: 10 } },
-            { data: { source: 'c', target: 'f', strength: 10 } },
-            { data: { source: 'e', target: 'j', strength: 10 } },
-            { data: { source: 'e', target: 'k', strength: 10 } }
-        ]
+        nodes: null,
+        edges: null
     };
+
+    // = {
+    //     nodes: [
+    //         { data: { id: 'a', name: 'Signup', weight: 100, colorCode: 'blue', shapeType: 'roundrectangle' } },
+    //         { data: { id: 'b', name: 'User Profile', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
+    //         { data: { id: 'c', name: 'Billing', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
+    //         { data: { id: 'd', name: 'Sales', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
+    //         { data: { id: 'e', name: 'Referral', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
+    //         { data: { id: 'f', name: 'Loan', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
+    //         { data: { id: 'j', name: 'Support', weight: 100, colorCode: 'red', shapeType: 'ellipse' } },
+    //         { data: { id: 'k', name: 'Sink Event', weight: 100, colorCode: 'green', shapeType: 'ellipse' } }
+    //     ],
+    //     edges: [
+    //         { data: { source: 'a', target: 'b', strength: 10 } },
+    //         { data: { source: 'b', target: 'c', strength: 10 } },
+    //         { data: { source: 'c', target: 'd', strength: 10 } },
+    //         { data: { source: 'c', target: 'e', strength: 10 } },
+    //         { data: { source: 'c', target: 'f', strength: 10 } },
+    //         { data: { source: 'e', target: 'j', strength: 10 } },
+    //         { data: { source: 'e', target: 'k', strength: 10 } }
+    //     ]
+    // };
 
 
     constructor(
         private normFactoryService: NormFactoryService,
+        private ref: ChangeDetectorRef,
         private afs: AngularFirestore) {
         this.subscription = new Subscription();
     }
@@ -109,7 +115,7 @@ export class DrawGraphComponent implements OnInit {
     }
 
     sendBid(event): void {
-        event.preventDefault();
+        // event.preventDefault();
 
         if (this.replyForm.valid) {
             const norm = this.getNorm();
@@ -118,7 +124,74 @@ export class DrawGraphComponent implements OnInit {
 
             this._createOutcomeSpace(norm, graph);
 
-            console.log(graph.leaves);
+            console.log(graph.nodes);
+
+
+
+            // graph.edges
+
+            // this.graphData.nodes = graph.nodes.map(node => {
+            //     return {
+            //         data: {
+            //             id: node.id,
+            //             name: node.normType,
+            //             weight: 100,
+            //             colorCode: 'blue',
+            //             shapeType: 'roundrectangle',
+            //         }
+            //     };
+            // });
+
+            this.graphData.nodes = [];
+            this.graphData.edges = [];
+
+            for (const [source, targets] of Array.from(graph.edges.entries())) {
+                // add vertex explicitly in case there are no targets
+                // this.graphData.edges.addNode(source);
+                this.graphData.nodes.push({
+                    data: {
+                        id: source.id,
+                        name: source.toNormRepresentation(),
+                        weight: 100,
+                        colorCode: 'blue',
+                        shapeType: 'roundrectangle',
+                    }
+                });
+
+                for (const target of targets) {
+                    this.graphData.edges.push({
+                        data: {
+                            source: source.id, 
+                            target: target.data.id, 
+                            strength: 10,
+                            name: target.name
+                        }
+                    });
+                    // rev.addEdge(target.data, source, target.weight, target.name);
+                }
+            }
+
+            this.ref.detectChanges();
+            //     nodes: [
+            //         { data: { id: 'a', name: 'Signup', weight: 100, colorCode: 'blue', shapeType: 'roundrectangle' } },
+            //         { data: { id: 'b', name: 'User Profile', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
+            //         { data: { id: 'c', name: 'Billing', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
+            //         { data: { id: 'd', name: 'Sales', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
+            //         { data: { id: 'e', name: 'Referral', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
+            //         { data: { id: 'f', name: 'Loan', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
+            //         { data: { id: 'j', name: 'Support', weight: 100, colorCode: 'red', shapeType: 'ellipse' } },
+            //         { data: { id: 'k', name: 'Sink Event', weight: 100, colorCode: 'green', shapeType: 'ellipse' } }
+            //     ],
+            //     edges: [
+            //         { data: { source: 'a', target: 'b', strength: 10 } },
+            //         { data: { source: 'b', target: 'c', strength: 10 } },
+            //         { data: { source: 'c', target: 'd', strength: 10 } },
+            //         { data: { source: 'c', target: 'e', strength: 10 } },
+            //         { data: { source: 'c', target: 'f', strength: 10 } },
+            //         { data: { source: 'e', target: 'j', strength: 10 } },
+            //         { data: { source: 'e', target: 'k', strength: 10 } }
+            //     ]
+            // };
         }
     }
 
@@ -126,25 +199,25 @@ export class DrawGraphComponent implements OnInit {
         console.log('Root-bid:', root_norm);
 
         new ActorRevision(this._roles, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
-        new PredicateRevision(this._conditions, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
-        new NormRevision(this.normFactoryService).improveBid([root_norm], graph, this.preferences);
+        // new PredicateRevision(this._conditions, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
+        // new NormRevision(this.normFactoryService).improveBid([root_norm], graph, this.preferences);
 
-        const targets = graph.getOutEdges(root_norm);
+        // const targets = graph.getOutEdges(root_norm);
 
-        console.log('targets', targets);
-        console.log('*********');
+        // console.log('targets', targets);
+        // console.log('*********');
 
-        if (!isNullOrUndefined(targets) && targets.length > 0) {
-            targets.forEach(target => {
-                this._createOutcomeSpace(target.data, graph);
-            });
-        }
+        // if (!isNullOrUndefined(targets) && targets.length > 0) {
+        //     targets.forEach(target => {
+        //         this._createOutcomeSpace(target.data, graph);
+        //     });
+        // }
     }
 
     private getNorm(): Norm {
         const values = this.replyForm.value;
 
-        return this.normFactoryService.getNorm(values.norm, values.subject, 'Hospital Administration', values.condition, values.what);
+        return this.normFactoryService.getOrCreateNorm(values.norm, values.subject, 'Hospital Administration', values.condition, values.what);
     }
 
 }

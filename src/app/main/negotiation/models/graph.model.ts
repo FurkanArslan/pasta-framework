@@ -153,6 +153,14 @@ export class DirectedGraph {
         return [...Array.from(this._outEdges.entries())].filter(x => x[1].length === 0).map(x => x[0]);
     }
 
+    /**
+     * Get the nodes
+     * @returns Norm
+     */
+    get nodes(): Norm[] {
+        return [...Array.from(this._outEdges.entries())].map(x => x[0]);
+    }
+
 
     /**
      * Create a shallow copy of this graph (copies edge map only).
