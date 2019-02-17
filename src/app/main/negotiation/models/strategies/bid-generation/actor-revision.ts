@@ -10,7 +10,6 @@ import { Value } from '../../value.model';
 
 export class ActorRevision extends BidGeneration {
     private _roles: FirebaseData[];
-    // private _bids: Bid[];
 
     constructor(roles: FirebaseData[], public normFactoryService: NormFactoryService) {
         super();
@@ -21,10 +20,6 @@ export class ActorRevision extends BidGeneration {
     public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         norms.forEach(norm => {
             this._improveNorm(norm, graph, preferencesOfAgent);
-
-            // improvingNorms.forEach(norm_ => {
-            //     this._addToGraph(norm, norm_, graph, preferencesOfAgent);
-            // });
         });
     }
 
@@ -33,24 +28,6 @@ export class ActorRevision extends BidGeneration {
         const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
 
         if (isPromotes) {
-            if (norm.normType === NormTypes.AUTH) {
-                // improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
-                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
-                        return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
-                    }, 0);
-
-                    graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
-                });
-            }
-            //  else if (norm.normType === NormTypes.PRO) {
-            //     improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
-            // }
-        }
-
-        if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
@@ -62,9 +39,43 @@ export class ActorRevision extends BidGeneration {
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
                 });
             }
-            // else if (norm.normType === NormTypes.PRO) {
-            //     improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-            // }
+            else if (norm.normType === NormTypes.PRO) {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
+                });
+            }
+        }
+
+        if (isDemotes) {
+            if (norm.normType === NormTypes.AUTH) {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
+                });
+            }
+            else if (norm.normType === NormTypes.PRO) {
+
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
+                });
+            }
         }
 
         this._getEqualNorms(norm).forEach(norm_ => {
@@ -131,7 +142,6 @@ export class ActorRevision extends BidGeneration {
                 .map(id => this._getRole(id))
                 .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
         } catch (error) {
-            console.log(norm.hasSubject);
             return [];
         }
 

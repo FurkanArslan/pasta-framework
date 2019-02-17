@@ -50,7 +50,7 @@ export class DrawGraphComponent implements OnInit {
         name: 'dagre',
         // rankDir: 'LR',
         directed: true,
-        padding: 0
+        padding: 10,
     };
 
     graphData = {
@@ -90,7 +90,7 @@ export class DrawGraphComponent implements OnInit {
 
     ngOnInit(): void {
 
-        this.roles$ = this.afs.collection<FirebaseData>('roles').valueChanges();
+        this.roles$ = this.afs.collection<FirebaseData>('roles-v2').valueChanges();
         this.conditions$ = this.afs.collection<FirebaseData>('conditions').valueChanges();
 
         const zippedCollections$ = zip(
@@ -103,7 +103,7 @@ export class DrawGraphComponent implements OnInit {
                 actions.forEach(action => data.forEach(data_ => this.consequent.push(new Consequent(data_, action))));
             });
 
-        this.afs.collection<FirebaseData>('roles').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+        this.afs.collection<FirebaseData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
             this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
 
@@ -171,10 +171,18 @@ export class DrawGraphComponent implements OnInit {
                 new ActorRevision(this._roles, this.normFactoryService).improveBid([target.data], graph, this.preferences);
                 new PredicateRevision(this._conditions, this.normFactoryService).improveBid([target.data], graph, this.preferences);
                 new NormRevision(this.normFactoryService).improveBid([target.data], graph, this.preferences);
+
+                // const child_targets = graph.getOutEdges(target.data);
+
+                // for (const child_target of child_targets) {
+                //     new ActorRevision(this._roles, this.normFactoryService).improveBid([child_target.data], graph, this.preferences);
+                //     new PredicateRevision(this._conditions, this.normFactoryService).improveBid([child_target.data], graph, this.preferences);
+                //     new NormRevision(this.normFactoryService).improveBid([child_target.data], graph, this.preferences);
+                // }
             }
-            //     targets.forEach(target => {
-            //         this._createOutcomeSpace(target.data, graph);
-            //     });
+            // targets.forEach(target => {
+            //     this._createOutcomeSpace(target.data, graph);
+            // });
         }
     }
 

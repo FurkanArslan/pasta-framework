@@ -49,7 +49,7 @@ export class NegotiationInputComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.roles$ = this.afs.collection<FirebaseData>('roles').valueChanges();
+        this.roles$ = this.afs.collection<FirebaseData>('roles-v2').valueChanges();
         this.conditions$ = this.afs.collection<FirebaseData>('conditions').valueChanges();
 
         const zippedCollections$ = zip(
@@ -170,7 +170,7 @@ export class NegotiationInputComponent implements OnInit {
     private getNorm(): Norm {
         const values = this.replyForm.value;
 
-        return this.normFactoryService.getNorm(values.norm, values.subject, this.negotiation.agent.name, values.condition, values.what);
+        return this.normFactoryService.getOrCreateNorm(values.norm, values.subject, this.negotiation.agent.name, values.condition, values.what);
     }
 
 }

@@ -15,6 +15,10 @@ export class Prohibition extends Norm {
     }
 
     public toNormRepresentation(): string {
+        if (this.hasAntecedent[0].shortName === 'true') {
+            return `P(${this.hasSubject.shortName}, HA, ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName}):${this.utility}`;
+        }
+        
         return `P(${this.hasSubject.shortName}, HA, not ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName}):${this.utility}`;
     }
 

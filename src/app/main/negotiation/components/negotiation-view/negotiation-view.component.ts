@@ -61,6 +61,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     private lastAgentBid: Bid[] = null;
     graph: DirectedGraph;
 
+    private visitedList = {};
+
     /**
      * Constructor
      *
@@ -104,10 +106,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.afs.collection<Value>('values').valueChanges().subscribe((values: Value[]) => {
             values.forEach(value => {
                 switch (value.name) {
-                    case 'Privacy': value.weight = 0.7; break;
+                    case 'Privacy': value.weight = 0.6; break;
                     // case 'Security': 
                     // case 'Safety': value.weight = 0.2; break;
-                    default: value.weight = 0.1;
+                    default: value.weight = 0.2;
                 }
             });
 
@@ -118,7 +120,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
         });
 
-        this.afs.collection<FirebaseData>('roles').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+        this.afs.collection<FirebaseData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
             this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
 
@@ -374,15 +376,20 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         new PredicateRevision(this._conditions, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
         new NormRevision(this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
 
-        const targets = scope.graph.getOutEdges(root_bid.consistOf);
+        const targets = scope.graph.getOutEdges(root_bid.consistOf[0]);
 
         console.log('targets', targets);
         console.log('*********');
 
         if (!isNullOrUndefined(targets) && targets.length > 0) {
             targets.forEach(target => {
-                root_bid.consistOf = [target.data];
-                scope._createOutcomeSpace(root_bid, scope);
+                if (!this.visitedList[target.data.id]) {
+                    this.visitedList[target.data.id] = true;
+                    root_bid.consistOf = [target.data];
+                    this._createOutcomeSpace(root_bid, scope);
+                } else {
+                    console.log('already visited: ', target.data);
+                }
             });
         }
     }

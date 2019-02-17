@@ -44,7 +44,8 @@ export class GraphRendererComponent implements OnChanges {
             .selector('node')
             .css({
                 'shape': 'data(shapeType)',
-                'width': 'mapData(weight, 40, 80, 20, 60)',
+                // 'width': 'mapData(weight, 40, 120, 20, 80)',
+                'width': 'label',
                 'content': 'data(name)',
                 'text-valign': 'center',
                 'text-outline-width': 1,
@@ -82,6 +83,14 @@ export class GraphRendererComponent implements OnChanges {
             .css({
                 'opacity': 0.25,
                 'text-opacity': 0
+            })
+            .selector('.highlighted')
+            .css({
+                'background-color': '#61bffc',
+                'line-color': '#61bffc',
+                'target-arrow-color': '#61bffc',
+                'transition-property': 'background-color, line-color, target-arrow-color',
+                'transition-duration': '0.5s'
             });
     }
 

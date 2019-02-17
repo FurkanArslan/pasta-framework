@@ -82,7 +82,7 @@ export class DirectedGraph {
     }
 
     private _setTargetUtility(source, target, weight): void {
-        target.utility = source.utility + weight;
+        target.utility = +source.utility + weight;
 
         const outEdgesOfTarget = this.getOutEdges(target);
 

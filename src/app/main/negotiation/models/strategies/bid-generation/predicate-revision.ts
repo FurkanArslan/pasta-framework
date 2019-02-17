@@ -35,25 +35,6 @@ export class PredicateRevision extends BidGeneration {
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
-                // improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
-                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
-                        return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
-                    }, 0);
-
-                    graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
-                });
-
-            }
-            //  else if (norm.normType === NormTypes.PRO) {
-            //     improvedNorms = improvedNorms.concat(this._getMoreExclusiveNorms(norm));
-            // }
-        }
-
-        if (isDemotes) {
-            if (norm.normType === NormTypes.AUTH) {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
@@ -63,10 +44,45 @@ export class PredicateRevision extends BidGeneration {
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
                 });
+
             }
-            // else if (norm.normType === NormTypes.PRO) {
-            //     improvedNorms = improvedNorms.concat(this._getMoreGeneralNorms(norm));
-            // }
+            else if (norm.normType === NormTypes.PRO) {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
+                });
+            }
+        }
+
+        if (isDemotes) {
+            if (norm.normType === NormTypes.AUTH) {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
+                });
+            }
+            else if (norm.normType === NormTypes.PRO) {
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                    const weight = norm.hasConsequent.reduce((accumulator, cons) => {
+                        return accumulator
+                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    }, 0);
+
+                    graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
+                });
+
+            }
         }
 
         this._getEqualNorms(norm).forEach(norm_ => {
