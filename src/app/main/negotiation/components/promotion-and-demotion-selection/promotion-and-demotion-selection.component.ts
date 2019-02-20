@@ -25,7 +25,7 @@ export class PromotionAndDemotionSelectionComponent implements OnInit {
     private currentBid: Bid;
 
     private bidsCollection$: AngularFirestoreCollection<Bid>;
-    private valuesCollection$: Observable<Value[]>;
+    valuesCollection$: Observable<Value[]>;
 
     constructor(private afs: AngularFirestore) {
         this.bidsCollection$ = this.afs.collection<Bid>('bids');

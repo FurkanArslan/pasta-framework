@@ -10,7 +10,7 @@
     </mat-form-field>
 
     <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
-        <mat-select placeholder="Norm" [(ngModel)]="normField" required name="norm">
+        <mat-select placeholder="Norm" required name="norm" ngModel>
             <mat-option *ngFor="let normType of normTypes | enumToArray" [value]="normType">
                 {{normType}}
             </mat-option>

@@ -31,7 +31,6 @@
                         ],
                         "scripts": [
                             "node_modules/typestate/dist/typestate-1.0.6.d.ts",
-                            "src/assets/graphlib/index.d.ts",
                             "node_modules/cytoscape/dist/cytoscape.min.js",
                             "node_modules/dagre/dist/dagre.min.js",
                             "node_modules/cytoscape-dagre/cytoscape-dagre.js"
@@ -44,7 +43,7 @@
                                 "replace": "src/environments/environment.ts",
                                 "with": "src/environments/environment.prod.ts"
                             }],
-                            "optimization": true,
+                            "optimization": false,
                             "outputHashing": "all",
                             "sourceMap": false,
                             "extractCss": true,

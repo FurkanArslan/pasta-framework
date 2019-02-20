@@ -18,7 +18,6 @@ import { EnumToArrayPipe } from '../enumToArray.pipe';
 // Components
 import { NegotiationViewComponent } from './components/negotiation-view/negotiation-view.component';
 import { NegotiationInputComponent } from './components/negotiation-input/negotiation-input.component';
-import { BidGenerationComponent } from './components/bid-generation/bid-generation.component';
 import { PromotionAndDemotionSelectionComponent } from './components/promotion-and-demotion-selection/promotion-and-demotion-selection.component';
 import { PreferencesSelectionComponent } from './components/preferences-selection/preferences-selection.component';
 import { ContinueOrExitComponent } from './components/continue-or-exit/continue-or-exit.component';
@@ -31,7 +30,6 @@ const routes: Routes = [
         component: NegotiationComponent,
         children: [
             { path: '', component: NegotiationViewComponent },
-            { path: 'bid-generation', component: BidGenerationComponent },
         ]
     },
     {
@@ -45,7 +43,6 @@ const routes: Routes = [
       NegotiationComponent,
       NegotiationViewComponent,
       NegotiationInputComponent,
-      BidGenerationComponent,
       PromotionAndDemotionSelectionComponent,
       PreferencesSelectionComponent,
       ContinueOrExitComponent,

@@ -15,7 +15,7 @@ export class PreferencesSelectionComponent implements OnInit {
     @Input() negotiation: Negotiation;
     @Input() phrase: NegotiationPhrase;
 
-    private valuesCollection$: AngularFirestoreCollection<Value>;
+    valuesCollection$: AngularFirestoreCollection<Value>;
 
     @ViewChild('replyForm')
     replyForm: NgForm;
