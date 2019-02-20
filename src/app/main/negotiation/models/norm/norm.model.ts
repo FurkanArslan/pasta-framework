@@ -1,18 +1,17 @@
 import { NormTypes } from './norm-types.enum';
-import { FirebaseData } from '../data';
-import { Consequent } from '../consequent.model';
+import { FirebaseData, ConsequentData } from '../data';
 
 export abstract class Norm {
     id: string;
     hasSubject: FirebaseData;
     hasObject: string;
     hasAntecedent: FirebaseData[];
-    hasConsequent: Consequent[];
+    hasConsequent: ConsequentData[];
     normType: NormTypes;
     private _utilityValue: number;
     private _isInitialUtility: boolean;
 
-    constructor(id: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: Consequent[]) {
+    constructor(id: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: ConsequentData[]) {
         this.id = id;
         this.hasSubject = subject;
         this.hasObject = object;
@@ -25,9 +24,9 @@ export abstract class Norm {
     get compoundConsequent(): string {
         return this.hasConsequent.reduce((consequent_, currentValue, currentIndex) => {
             if (currentIndex === 0) {
-                return `${currentValue.action.name.toLowerCase()}${currentValue.data.name.toLowerCase()}`;
+                return `${currentValue.name.toLowerCase()}`;
             } else {
-                return `${consequent_} and ${currentValue.action.name.toLowerCase()}${currentValue.data.name.toLowerCase()}`;
+                return `${consequent_} and ${currentValue.name.toLowerCase()}`;
             }
         }, '');
     }
@@ -35,9 +34,9 @@ export abstract class Norm {
     get compoundConsequentWithShortName(): string {
         return this.hasConsequent.reduce((consequent_, currentValue, currentIndex) => {
             if (currentIndex === 0) {
-                return `${currentValue.action.shortName}${currentValue.data.shortName}`;
+                return `${currentValue.shortName}`;
             } else {
-                return `${consequent_} & ${currentValue.action.shortName}${currentValue.data.shortName}`;
+                return `${consequent_} & ${currentValue.shortName}`;
             }
         }, '');
     }

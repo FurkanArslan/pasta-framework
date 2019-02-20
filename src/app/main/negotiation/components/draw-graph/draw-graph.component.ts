@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { NormTypes } from '../../models/norm/norm-types.enum';
 import { Observable, Subscription, zip } from 'rxjs';
-import { FirebaseData, ActionsData } from '../../models/data';
+import { FirebaseData, ActionsData, ConsequentData } from '../../models/data';
 import { Consequent } from '../../models/consequent.model';
 import { NgForm } from '@angular/forms';
 import { Bid } from '../../models/bid.model';
@@ -15,6 +15,7 @@ import { PredicateRevision } from '../../models/strategies/bid-generation/predic
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
 import { isNullOrUndefined } from 'util';
 import { Value } from '../../models/value.model';
+import { Queue } from '../../models/queue.model';
 
 @Component({
     selector: 'app-draw-graph',
@@ -26,8 +27,7 @@ export class DrawGraphComponent implements OnInit {
 
     roles$: Observable<FirebaseData[]>;
     conditions$: Observable<FirebaseData[]>;
-
-    consequent: Consequent[] = [];
+    consequents$: Observable<ConsequentData[]>;
 
     @ViewChild('replyForm')
     replyForm: NgForm;
@@ -36,6 +36,7 @@ export class DrawGraphComponent implements OnInit {
 
     private _roles: FirebaseData[] = [];
     private _conditions: FirebaseData[];
+    private _consequents: ConsequentData[] = [];
 
     private preferences: Value[] = [
         { id: '8GO8n36e03YsGJVgyWMw', name: 'Privacy', weight: 0.6 },
@@ -58,28 +59,8 @@ export class DrawGraphComponent implements OnInit {
         edges: null
     };
 
-    // = {
-    //     nodes: [
-    //         { data: { id: 'a', name: 'Signup', weight: 100, colorCode: 'blue', shapeType: 'roundrectangle' } },
-    //         { data: { id: 'b', name: 'User Profile', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
-    //         { data: { id: 'c', name: 'Billing', weight: 100, colorCode: 'magenta', shapeType: 'roundrectangle' } },
-    //         { data: { id: 'd', name: 'Sales', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
-    //         { data: { id: 'e', name: 'Referral', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
-    //         { data: { id: 'f', name: 'Loan', weight: 100, colorCode: 'orange', shapeType: 'roundrectangle' } },
-    //         { data: { id: 'j', name: 'Support', weight: 100, colorCode: 'red', shapeType: 'ellipse' } },
-    //         { data: { id: 'k', name: 'Sink Event', weight: 100, colorCode: 'green', shapeType: 'ellipse' } }
-    //     ],
-    //     edges: [
-    //         { data: { source: 'a', target: 'b', strength: 10 } },
-    //         { data: { source: 'b', target: 'c', strength: 10 } },
-    //         { data: { source: 'c', target: 'd', strength: 10 } },
-    //         { data: { source: 'c', target: 'e', strength: 10 } },
-    //         { data: { source: 'c', target: 'f', strength: 10 } },
-    //         { data: { source: 'e', target: 'j', strength: 10 } },
-    //         { data: { source: 'e', target: 'k', strength: 10 } }
-    //     ]
-    // };
-
+    private visitedList = {};
+    private queue = new Queue();
 
     constructor(
         private normFactoryService: NormFactoryService,
@@ -91,27 +72,32 @@ export class DrawGraphComponent implements OnInit {
     ngOnInit(): void {
 
         this.roles$ = this.afs.collection<FirebaseData>('roles-v2').valueChanges();
-        this.conditions$ = this.afs.collection<FirebaseData>('conditions').valueChanges();
+        this.conditions$ = this.afs.collection<FirebaseData>('conditions-v2').valueChanges();
+        this.consequents$ = this.afs.collection<ConsequentData>('consequents').valueChanges();
 
-        const zippedCollections$ = zip(
-            this.afs.collection<ActionsData>('actions').valueChanges(),
-            this.afs.collection<FirebaseData>('data').valueChanges())
-            .subscribe(results => {
-                const actions = results[0];
-                const data = results[1];
+        // const zippedCollections$ = zip(
+        //     this.afs.collection<ActionsData>('actions').valueChanges(),
+        //     this.afs.collection<FirebaseData>('data').valueChanges())
+        //     .subscribe(results => {
+        //         const actions = results[0];
+        //         const data = results[1];
 
-                actions.forEach(action => data.forEach(data_ => this.consequent.push(new Consequent(data_, action))));
-            });
+        //         actions.forEach(action => data.forEach(data_ => this.consequent.push(new Consequent(data_, action))));
+        //     });
 
         this.afs.collection<FirebaseData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
             this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
 
-        this.afs.collection<FirebaseData>('conditions').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+        this.afs.collection<FirebaseData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
             this._conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
 
-        this.subscription.add(zippedCollections$);
+        this.afs.collection<ConsequentData>('consequents').get().subscribe((querySnapshot: QuerySnapshot<ConsequentData>) => {
+            this._consequents = querySnapshot.docs.map((doc: QueryDocumentSnapshot<ConsequentData>) => doc.data());
+        });
+
+        // this.subscription.add(zippedCollections$);
     }
 
     sendBid(event): void {
@@ -122,7 +108,7 @@ export class DrawGraphComponent implements OnInit {
 
             const graph = new DirectedGraph();
 
-            this._createOutcomeSpace(norm, graph);
+            this._createOutcomeSpace2(norm, graph);
 
             this.graphData.nodes = [];
             this.graphData.edges = [];
@@ -154,11 +140,39 @@ export class DrawGraphComponent implements OnInit {
         }
     }
 
+    private _createOutcomeSpace2(root_norm: Norm, graph: DirectedGraph): void {
+        console.log('Root-bid:', root_norm);
+        this.visitedList[root_norm.id] = true;
+
+        new ActorRevision(this._roles, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
+        new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
+        new NormRevision(this.normFactoryService).improveBid([root_norm], graph, this.preferences);
+
+        const targets = graph.getOutEdges(root_norm);
+
+        console.log('targets', targets);
+        console.log('*********');
+
+        if (!isNullOrUndefined(targets) && targets.length > 0) {
+            targets.forEach(target => {
+                if (!this.visitedList[target.data.id]) {
+                    this.queue.enqueue(target.data);
+                } else {
+                    console.log('already visited: ', target.data);
+                }
+            });
+        }
+
+        if (!this.queue.isEmpty) {
+            this._createOutcomeSpace2(this.queue.dequeue(), graph);
+        }
+    }
+
     private _createOutcomeSpace(root_norm: Norm, graph: DirectedGraph): void {
         console.log('Root-bid:', root_norm);
 
         new ActorRevision(this._roles, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
-        new PredicateRevision(this._conditions, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
+        new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid([root_norm], graph, this.preferences);
         new NormRevision(this.normFactoryService).improveBid([root_norm], graph, this.preferences);
 
         const targets = graph.getOutEdges(root_norm);
@@ -169,7 +183,7 @@ export class DrawGraphComponent implements OnInit {
         if (!isNullOrUndefined(targets) && targets.length > 0) {
             for (const target of targets) {
                 new ActorRevision(this._roles, this.normFactoryService).improveBid([target.data], graph, this.preferences);
-                new PredicateRevision(this._conditions, this.normFactoryService).improveBid([target.data], graph, this.preferences);
+                new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid([target.data], graph, this.preferences);
                 new NormRevision(this.normFactoryService).improveBid([target.data], graph, this.preferences);
 
                 // const child_targets = graph.getOutEdges(target.data);

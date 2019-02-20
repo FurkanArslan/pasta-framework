@@ -1,5 +1,5 @@
 import { Bid } from '../../bid.model';
-import { FirebaseData } from '../../data';
+import { FirebaseData, ConsequentData } from '../../data';
 import { Norm } from '../../norm/norm.model';
 import { Consequent } from '../../consequent.model';
 
@@ -23,7 +23,7 @@ export abstract class BidGeneration {
             norm1.hasObject === norm2.hasObject &&
             this._isSameItem(norm1.hasSubject, norm2.hasSubject) &&
             this._isSameArray(norm1.hasAntecedent, norm2.hasAntecedent) &&
-            this._isSameConsequent(norm1.hasConsequent, norm2.hasConsequent);
+            this._isSameArray(norm1.hasConsequent, norm2.hasConsequent);
     }
 
     protected _isSameArray(items1: FirebaseData[], items2: FirebaseData[]): boolean {
@@ -39,7 +39,12 @@ export abstract class BidGeneration {
         return item1.id === item2.id;
     }
 
-    protected _isSameConsequent(consequent1: Consequent[], consequent2: Consequent[]): boolean {
+    /**
+     * @deprecated
+     * @param consequent1 
+     * @param consequent2 
+     */
+    protected _isSameConsequent(consequent1: ConsequentData[], consequent2: ConsequentData[]): boolean {
         return consequent1.every(consequent_ => consequent2.includes(consequent_)) &&
             consequent2.every(consequent_ => consequent1.includes(consequent_));
     }

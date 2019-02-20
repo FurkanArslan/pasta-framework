@@ -1,7 +1,7 @@
 import { Bid } from '../../bid.model';
 import { BidGeneration } from './bid-generation';
 import { Norm } from '../../norm/norm.model';
-import { FirebaseData } from '../../data';
+import { FirebaseData, ConsequentData } from '../../data';
 import { Consequent } from '../../consequent.model';
 import { NormFactoryService } from 'app/main/negotiation/factories/norm-factory.service';
 import { DirectedGraph } from '../../graph.model';
@@ -10,36 +10,33 @@ import { isNullOrUndefined } from 'util';
 import { NormTypes } from '../../norm/norm-types.enum';
 
 export class PredicateRevision extends BidGeneration {
-
     private _conditions: FirebaseData[];
+    private _consequents: ConsequentData[];
 
-    constructor(conditions: FirebaseData[], public normFactoryService: NormFactoryService) {
+    constructor(conditions: FirebaseData[], consequents: ConsequentData[], public normFactoryService: NormFactoryService) {
         super();
 
         this._conditions = conditions;
+        this._consequents = consequents;
     }
 
     public improveBid(norms: Norm[], graph: DirectedGraph, preferencesOfAgent: Value[]): void {
         norms.forEach(norm => {
             this._improveNorm(norm, graph, preferencesOfAgent);
-
-            // improvingNorms.forEach(norm_ => {
-            //     this._addToGraph(norm, norm_, graph, preferencesOfAgent);
-            // });
         });
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
-        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
@@ -47,11 +44,11 @@ export class PredicateRevision extends BidGeneration {
 
             }
             else if (norm.normType === NormTypes.PRO) {
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
@@ -64,19 +61,19 @@ export class PredicateRevision extends BidGeneration {
                 this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
                 });
             }
             else if (norm.normType === NormTypes.PRO) {
-                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
@@ -114,38 +111,7 @@ export class PredicateRevision extends BidGeneration {
         const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
 
         return !isNullOrUndefined(preference) ? preference.weight : 0;
-    };
-
-    private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const findPreferenceWeight = (preferenceId): number => {
-            const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
-
-            return !isNullOrUndefined(preference) ? preference.weight : 0;
-        };
-
-        const weight = norm.hasConsequent.reduce((accumulator, cons) => {
-            return accumulator
-                + cons.action.promotes.reduce((accumulator_, preferenceId) => this._getPromotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0)
-                + cons.action.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
-        }, 0);
-
-        graph.addEdge(root_norm, norm, weight);
     }
-
-    private _getPromotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
-        switch (normType) {
-            case NormTypes.AUTH: return total + preferenceValue;
-            case NormTypes.PRO: return total - preferenceValue;
-        }
-    }
-
-    private _getDemotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
-        switch (normType) {
-            case NormTypes.AUTH: return total - preferenceValue;
-            case NormTypes.PRO: return total + preferenceValue;
-        }
-    }
-
 
     private _getMoreGeneralNorms(root_norm: Norm): Norm[] {
         let possibleNorms: Norm[] = [];
@@ -164,6 +130,20 @@ export class PredicateRevision extends BidGeneration {
             possibleNorms = possibleNorms.concat(improvements);
         });
 
+        root_norm.hasConsequent.forEach((oldConsequent, index) => {
+            const improvements = this._getPossibleIds(oldConsequent.exclusive)
+                .map(id => this._getConsequent(id))
+                .map(newConsequent => this.normFactoryService.getOrCreateNorm(
+                    root_norm.normType,
+                    root_norm.hasSubject,
+                    root_norm.hasObject,
+                    root_norm.hasAntecedent,
+                    root_norm.hasConsequent.map((value, i) => index === i ? newConsequent : value))
+                );
+
+            possibleNorms = possibleNorms.concat(improvements);
+        });
+
         if (root_norm.hasAntecedent.length >= 2) {
             for (let index = 0; index < root_norm.hasAntecedent.length; index++) {
                 const tempNorm = this.normFactoryService.getOrCreateNorm(
@@ -172,6 +152,19 @@ export class PredicateRevision extends BidGeneration {
                     root_norm.hasObject,
                     root_norm.hasAntecedent.splice(index, 1),
                     root_norm.hasConsequent);
+
+                possibleNorms.push(tempNorm);
+            }
+        }
+
+        if (root_norm.hasConsequent.length >= 2) {
+            for (let index = 0; index < root_norm.hasConsequent.length; index++) {
+                const tempNorm = this.normFactoryService.getOrCreateNorm(
+                    root_norm.normType,
+                    root_norm.hasSubject,
+                    root_norm.hasObject,
+                    root_norm.hasAntecedent,
+                    root_norm.hasConsequent.splice(index, 1));
 
                 possibleNorms.push(tempNorm);
             }
@@ -192,6 +185,20 @@ export class PredicateRevision extends BidGeneration {
                     root_norm.hasObject,
                     root_norm.hasAntecedent.map((value, i) => index === i ? newAntecedent : value),
                     root_norm.hasConsequent)
+                );
+
+            possibleNorms = possibleNorms.concat(improvements);
+        });
+
+        root_norm.hasConsequent.forEach((oldConsequent, index) => {
+            const improvements = this._getPossibleIds(oldConsequent.moreGeneral)
+                .map(id => this._getConsequent(id))
+                .map(newConsequent => this.normFactoryService.getOrCreateNorm(
+                    root_norm.normType,
+                    root_norm.hasSubject,
+                    root_norm.hasObject,
+                    root_norm.hasAntecedent,
+                    root_norm.hasConsequent.map((value, i) => index === i ? newConsequent : value))
                 );
 
             possibleNorms = possibleNorms.concat(improvements);
@@ -261,6 +268,10 @@ export class PredicateRevision extends BidGeneration {
 
     private _getAntecedent(antecedent_id: string): FirebaseData {
         return this._conditions.find(condition => condition.id === antecedent_id);
+    }
+
+    private _getConsequent(consequent_id: string): ConsequentData {
+        return this._consequents.find(condition => condition.id === consequent_id);
     }
 
     private _getPossibleIds(array1: string[], array2?: string[]): string[] {
@@ -337,7 +348,7 @@ export class PredicateRevision extends BidGeneration {
         return antecedents1.filter(antecedent1 => !this._isInArray(antecedent1, antecedents2));
     }
 
-    private _differenceConsequent(consequents1: Consequent[], consequents2: Consequent[]): Consequent[] {
-        return consequents1.filter(consequent1 => !consequents2.includes(consequent1));
+    private _differenceConsequent(consequents1: ConsequentData[], consequents2: ConsequentData[]): ConsequentData[] {
+        return consequents1.filter(consequent1 => !this._isInArray(consequent1, consequents2));
     }
 }

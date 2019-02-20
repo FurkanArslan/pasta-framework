@@ -9,7 +9,7 @@ export class BidUtils {
             norm1.hasObject === norm2.hasObject &&
             this.isSameItem(norm1.hasSubject, norm2.hasSubject) &&
             this.isSameArray(norm1.hasAntecedent, norm2.hasAntecedent) &&
-            this.isSameConsequent(norm1.hasConsequent, norm2.hasConsequent);
+            this.isSameArray(norm1.hasConsequent, norm2.hasConsequent);
     }
 
     public static isSameArray(items1: FirebaseData[], items2: FirebaseData[]): boolean {

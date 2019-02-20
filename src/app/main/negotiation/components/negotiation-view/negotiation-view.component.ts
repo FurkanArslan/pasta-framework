@@ -22,9 +22,10 @@ import { Value } from '../../models/value.model';
 import { AngularFirestore, QuerySnapshot, QueryDocumentSnapshot } from '@angular/fire/firestore';
 
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
-import { FirebaseData } from '../../models/data';
+import { FirebaseData, ConsequentData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
+import { Queue } from '../../models/queue.model';
 
 @Component({
     selector: 'negotiation-view',
@@ -58,10 +59,13 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     private bids: Bid[] = [];
     private _roles: FirebaseData[] = [];
     private _conditions: FirebaseData[];
+    private _consequents: ConsequentData[] = [];
+
     private lastAgentBid: Bid[] = null;
     graph: DirectedGraph;
 
     private visitedList = {};
+    private queue = new Queue();
 
     /**
      * Constructor
@@ -124,8 +128,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
 
-        this.afs.collection<FirebaseData>('conditions').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+        this.afs.collection<FirebaseData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
             this._conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
+        });
+
+        this.afs.collection<ConsequentData>('consequents').get().subscribe((querySnapshot: QuerySnapshot<ConsequentData>) => {
+            this._consequents = querySnapshot.docs.map((doc: QueryDocumentSnapshot<ConsequentData>) => doc.data());
         });
     }
 
@@ -351,7 +359,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             const user_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
             scope.graph = new DirectedGraph();
 
-            scope._createOutcomeSpace(user_bid, scope);
+            scope._createOutcomeSpace2(user_bid, scope);
 
             console.log(scope.graph.leaves);
 
@@ -369,11 +377,41 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         }
     }
 
+    private _createOutcomeSpace2(root_bid: Bid, scope): void {
+        console.log('Root-bid:', root_bid.consistOf);
+        this.visitedList[root_bid.consistOf[0].id] = true;
+
+        new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+        new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+        new NormRevision(this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+
+        const targets = scope.graph.getOutEdges(root_bid.consistOf[0]);
+
+        console.log('targets', targets);
+        console.log('*********');
+
+        if (!isNullOrUndefined(targets) && targets.length > 0) {
+            targets.forEach(target => {
+                if (!this.visitedList[target.data.id]) {
+                    this.queue.enqueue(target.data);
+                } else {
+                    console.log('already visited: ', target.data);
+                }
+            });
+        }
+
+        if (!this.queue.isEmpty) {
+            root_bid.consistOf = [this.queue.dequeue()];
+            this._createOutcomeSpace2(root_bid, scope);
+        }
+
+    }
+
     private _createOutcomeSpace(root_bid: Bid, scope): void {
         console.log('Root-bid:', root_bid.consistOf);
 
         new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
-        new PredicateRevision(this._conditions, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+        new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
         new NormRevision(this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
 
         const targets = scope.graph.getOutEdges(root_bid.consistOf[0]);

@@ -24,16 +24,16 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
-        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -43,8 +43,8 @@ export class ActorRevision extends BidGeneration {
                 this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -57,8 +57,8 @@ export class ActorRevision extends BidGeneration {
                 this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -69,8 +69,8 @@ export class ActorRevision extends BidGeneration {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -89,22 +89,6 @@ export class ActorRevision extends BidGeneration {
         return !isNullOrUndefined(preference) ? preference.weight : 0;
     };
 
-    private _addToGraph(root_norm: Norm, norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const findPreferenceWeight = (preferenceId): number => {
-            const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
-
-            return !isNullOrUndefined(preference) ? preference.weight : 0;
-        };
-
-        const weight = norm.hasConsequent.reduce((accumulator, cons) => {
-            return accumulator
-                + cons.action.promotes.reduce((accumulator_, preferenceId) => this._getPromotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0)
-                + cons.action.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
-        }, 0);
-
-        graph.addEdge(root_norm, norm, weight, `ar-${weight}`);
-    }
-
     private _getPromotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
         switch (normType) {
             case NormTypes.AUTH: return total + preferenceValue;
@@ -120,19 +104,27 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _getMoreGeneralNorms(norm: Norm): Norm[] {
-        const possibleNormIds = this._getPossibleIds(norm.hasSubject.moreGeneral);
+        try {
+            const possibleNormIds = this._getPossibleIds(norm.hasSubject.moreGeneral);
 
-        return possibleNormIds
-            .map(id => this._getRole(id))
-            .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+            return possibleNormIds
+                .map(id => this._getRole(id))
+                .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+        } catch (error) {
+            return [];
+        }
     }
 
     private _getMoreExclusiveNorms(norm: Norm): Norm[] {
-        const possibleNormIds = this._getPossibleIds(norm.hasSubject.exclusive);
+        try {
+            const possibleNormIds = this._getPossibleIds(norm.hasSubject.exclusive);
 
-        return possibleNormIds
-            .map(id => this._getRole(id))
-            .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+            return possibleNormIds
+                .map(id => this._getRole(id))
+                .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
+        } catch (error) {
+            return [];
+        }
     }
 
     private _getEqualNorms(norm: Norm): Norm[] {
@@ -242,7 +234,7 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _isSameNormExceptSubject(norm: Norm, norm1: Norm): boolean {
-        return this._isSameConsequent(norm.hasConsequent, norm1.hasConsequent) &&
+        return this._isSameArray(norm.hasConsequent, norm1.hasConsequent) &&
             this._isSameArray(norm.hasAntecedent, norm1.hasAntecedent) &&
             norm.hasObject === norm1.hasObject &&
             norm.normType === norm1.normType &&

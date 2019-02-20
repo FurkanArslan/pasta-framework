@@ -20,8 +20,8 @@
     <mat-form-field [hideRequiredMarker]="true" floatLabel="never" appearance="standard" class="mx-16 message-text">
         <mat-select placeholder="What" ngModel required name="what" multiple 
             matTooltip="You can choice multiple action" [matTooltipPosition]="'above'">
-            <mat-option *ngFor="let consequent_ of consequent" [value]="consequent_">
-                {{consequent_.toString()}}
+            <mat-option *ngFor="let consequent_ of consequents$ | async" [value]="consequent_">
+                {{consequent_.name}}
             </mat-option>
         </mat-select>
     </mat-form-field>

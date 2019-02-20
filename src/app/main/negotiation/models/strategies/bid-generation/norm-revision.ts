@@ -22,16 +22,16 @@ export class NormRevision extends BidGeneration {
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.promotes) && consequent.action.promotes.length > 0);
-        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.action.demotes) && consequent.action.demotes.length > 0);
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
 
         if (isPromotes && norm.normType === NormTypes.PRO) {
             const newNorm = this.normFactoryService.getOrCreateNorm(NormTypes.AUTH, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
 
             const weight = newNorm.hasConsequent.reduce((accumulator, cons) => {
                 return accumulator
-                    + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ + 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                    + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ - 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                    + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
             }, 0);
 
             graph.addEdge(norm, newNorm, +weight.toFixed(2), `NR(${weight.toFixed(2)})`);
@@ -42,8 +42,8 @@ export class NormRevision extends BidGeneration {
 
             const weight = newNorm.hasConsequent.reduce((accumulator, cons) => {
                 return accumulator
-                    + cons.action.promotes.reduce((accumulator_, preferenceId) => accumulator_ - 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                    + cons.action.demotes.reduce((accumulator_, preferenceId) => accumulator_ + 2 * this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                    + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                    + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
             }, 0);
 
             graph.addEdge(norm, newNorm, +weight.toFixed(2), `NR(${weight.toFixed(2)})`);
@@ -65,8 +65,8 @@ export class NormRevision extends BidGeneration {
 
         const weight = norm.hasConsequent.reduce((accumulator, cons) => {
             return accumulator
-                + cons.action.promotes.reduce((accumulator_, preferenceId) => this._getPromotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0)
-                + cons.action.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
+                + cons.promotes.reduce((accumulator_, preferenceId) => this._getPromotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0)
+                + cons.demotes.reduce((accumulator_, preferenceId) => this._getDemotesWeight(norm.normType, accumulator_, findPreferenceWeight(preferenceId)), 0);
         }, 0);
 
         graph.addEdge(root_norm, norm, weight);

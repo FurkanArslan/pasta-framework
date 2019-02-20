@@ -17,3 +17,8 @@ export interface ActionsData extends FirebaseData {
     demotes: string[];
     moreGeneral: string[];
 }
+
+export interface ConsequentData extends FirebaseData {
+    promotes: string[];
+    demotes: string[];
+}
