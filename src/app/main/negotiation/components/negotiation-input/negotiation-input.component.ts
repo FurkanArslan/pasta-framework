@@ -65,9 +65,9 @@ export class NegotiationInputComponent implements OnInit {
         //         // actions.forEach(action => data.forEach(data_ => this.consequent.push(`${action.name} ${data_.name}`)));
         //     });
 
-        this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
-            this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
-        });
+        // this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
+        //     this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
+        // });
 
         // this.currentBid = new Bid(this.afs.createId(), this.negotiation.user, this.negotiation.agent);
 

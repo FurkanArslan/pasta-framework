@@ -22,14 +22,12 @@ export class NegotiationPhrase {
         this._phrase.from(NegotiationPhrases.INITIAL).toAny(NegotiationPhrases);
         this._phrase.from(NegotiationPhrases.WELCOME).toAny(NegotiationPhrases);
 
-        // this._phrase.from(NegotiationPhrases.SCENARIO_SELECTION).to(NegotiationPhrases.ROLE_SELECTION);
-        // this._phrase.from(NegotiationPhrases.ROLE_SELECTION).to(NegotiationPhrases.PREFERENCE_SELECTION);
-        // this._phrase.from(NegotiationPhrases.ROLE_SELECTION).to(NegotiationPhrases.FIRST_OFFER);
         this._phrase.from(NegotiationPhrases.PREFERENCE_SELECTION).to(NegotiationPhrases.USER_TURN);
 
         // Negotiation turn states
         this._phrase.from(NegotiationPhrases.USER_TURN).to(NegotiationPhrases.AGENTS_TURN);
         this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.CONTINUE_OR_EXIT);
+        this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.EXIT);
 
         // Bid generation states
         this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);

@@ -11,7 +11,11 @@ export class Prohibition extends Norm {
     }
 
     public toString(): string {
-        return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
+        if (this.compoundAntecedent.includes('always')) {
+            return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
+        }
+        
+        return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when not ${this.compoundAntecedent}.`;
     }
 
     public toNormRepresentation(): string {

@@ -40,8 +40,8 @@ export class PromotionAndDemotionSelectionComponent implements OnInit {
     reply(event): void {
         event.preventDefault();
 
-        this.currentBid.promotes = this.replyForm.form.value.promotes;
-        this.currentBid.demotes = this.replyForm.form.value.demotes;
+        // this.currentBid.promotes = this.replyForm.form.value.promotes;
+        // this.currentBid.demotes = this.replyForm.form.value.demotes;
 
         const convertedData = JSON.parse(JSON.stringify(this.currentBid));
         // this.bidsCollection$.add(convertedData);

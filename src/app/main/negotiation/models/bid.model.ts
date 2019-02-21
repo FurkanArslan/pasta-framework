@@ -13,18 +13,12 @@ export class Bid {
     consistOf: Norm[];
     offeredBy: User;
     offeredTo: User;
-    demotes: Value[];
-    promotes: Value[];
-    private _utilityValue: number;
 
-    constructor(id: string, offeredBy: User, offeredTo: User, norms?: Norm[], demotes?: Value[], promotes?: Value[], cdate?: any) {
+    constructor(id: string, offeredBy: User, offeredTo: User, norms?: Norm[], cdate?: any) {
         this.id = id;
         this.offeredBy = offeredBy;
         this.offeredTo = offeredTo;
-        this.demotes = demotes || [];
-        this.promotes = promotes || [];
         this.cdate = cdate || firestore.FieldValue.serverTimestamp();
-        this._utilityValue = 0;
         this.consistOf = norms;
 
         // if (!isNullOrUndefined(norms)) {
@@ -32,15 +26,5 @@ export class Bid {
         // } else {
         //     this.consistOf = [];
         // }
-    }
-
-    set utility(newUtility: number) {
-        if (newUtility && (newUtility > this._utilityValue)) {
-            this._utilityValue = +newUtility.toFixed(1);
-        }
-    }
-
-    get utility(): number {
-        return this._utilityValue;
     }
 }

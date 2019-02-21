@@ -22,8 +22,11 @@ export class NormRevision extends BidGeneration {
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
-        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
+        // const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
+        // const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
+
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.includes('8GO8n36e03YsGJVgyWMw'));
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.includes('8GO8n36e03YsGJVgyWMw'));
 
         if (isPromotes && norm.normType === NormTypes.PRO) {
             const newNorm = this.normFactoryService.getOrCreateNorm(NormTypes.AUTH, norm.hasSubject, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);

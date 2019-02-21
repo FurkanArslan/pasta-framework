@@ -24,10 +24,13 @@ export class ActorRevision extends BidGeneration {
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
-        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
+        // const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
+        // const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
 
-        if (isPromotes) {
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.includes('8GO8n36e03YsGJVgyWMw'));
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.includes('8GO8n36e03YsGJVgyWMw'));
+
+        if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
@@ -40,11 +43,11 @@ export class ActorRevision extends BidGeneration {
                 });
             }
             else if (norm.normType === NormTypes.PRO) {
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -52,7 +55,7 @@ export class ActorRevision extends BidGeneration {
             }
         }
 
-        if (isDemotes) {
+        if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
@@ -65,12 +68,11 @@ export class ActorRevision extends BidGeneration {
                 });
             }
             else if (norm.normType === NormTypes.PRO) {
-
-                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -142,62 +144,6 @@ export class ActorRevision extends BidGeneration {
             return [];
         }
     }
-
-    // public getImprovingStep(bid: Bid): Bid[] {
-    //     const improvingSteps = [];
-
-    //     bid.consistOf.forEach(norm => {
-    //         improvingSteps.push(this._improveWithNorm(bid, norm));
-    //     });
-
-    //     return improvingSteps;
-    // }
-
-    // private _improveWithNorm(bid: Bid, norm: Norm): Bid[] {
-    //     const possibleBids = [];
-    //     const index = bid.consistOf.findIndex(norm_ => norm_.id === norm.id);
-
-    //     const moreGeneralRoles = this._roles.filter(role => !isNullOrUndefined(role.moreGeneral) && role.moreGeneral.some(role_ => role_ === norm.hasSubject.id));
-    //     const moreExclusiveRoles = norm.hasSubject.moreGeneral || [];
-
-    //     moreGeneralRoles.forEach(role => {
-    //         // const bidWithoutThisNorm = this._getBidWithoutTheNorm(bid, norm);
-    //         const improvedNorm = this.normFactoryService.getNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
-
-    //         // this._addToTheList(bidWithoutThisNorm.consistOf, improvedNorm);
-
-    //         possibleBids.push(bid.consistOf.splice(index, 1, improvedNorm));
-    //     });
-
-    //     moreExclusiveRoles.forEach(role => {
-    //         const roleModel = this._roles.find(role_ => role_.id === role);
-    //         // const bidWithoutThisNorm = this._getBidWithoutTheNorm(bid, norm);
-
-    //         const improvedNorm = this.normFactoryService.getNorm(norm.normType, roleModel, norm.hasObject, norm.hasAntecedent, norm.hasConsequent);
-
-    //         // this._addToTheList(bidWithoutThisNorm.consistOf, improvedNorm);
-
-    //         possibleBids.push(bid.consistOf.splice(index, 1, improvedNorm));
-    //     });
-
-    //     return possibleBids;
-    // }
-
-    // private _addToTheList(norms: Norm[], norm): void {
-    //     if (norms.some(norm_ => norm_.id === norm.id)) {
-    //         return;
-    //     }
-
-    //     norms.push(norm);
-    // }
-
-    // private _getBidWithoutTheNorm(bid: Bid, norm: Norm): Bid {
-    //     const index = bid.consistOf.findIndex(norm_ => norm_.id === norm.id);
-
-    //     bid.consistOf = bid.consistOf.splice(index);
-
-    //     return bid;
-    // }
 
     public getBidOptions(availableBids: Bid[], bid: Bid): Bid[] {
 

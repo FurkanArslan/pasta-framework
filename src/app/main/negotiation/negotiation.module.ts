@@ -23,6 +23,10 @@ import { PreferencesSelectionComponent } from './components/preferences-selectio
 import { ContinueOrExitComponent } from './components/continue-or-exit/continue-or-exit.component';
 import { DrawGraphComponent } from './components/draw-graph/draw-graph.component';
 import { GraphRendererComponent } from './components/draw-graph/graph-renderer/graph-renderer.component';
+import { ThankComponent } from './components/thank/thank.component';
+
+import { StarRatingModule } from 'angular-star-rating';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 const routes: Routes = [
     {
@@ -35,6 +39,10 @@ const routes: Routes = [
     {
         path: 'draw-bid-graph',
         component: DrawGraphComponent
+    },
+    {
+        path: 'thank-you',
+        component: ThankComponent
     }
 ];
 
@@ -48,7 +56,8 @@ const routes: Routes = [
       ContinueOrExitComponent,
       EnumToArrayPipe,
       DrawGraphComponent,
-      GraphRendererComponent
+      GraphRendererComponent,
+      ThankComponent
    ],
    imports: [
       RouterModule.forChild(routes),
@@ -65,7 +74,9 @@ const routes: Routes = [
       FuseSharedModule,
       MatSelectModule,
       MatSliderModule,
-      MatTooltipModule
+      MatTooltipModule,
+
+      StarRatingModule.forChild()
    ],
    providers: [
       NegotiationService,

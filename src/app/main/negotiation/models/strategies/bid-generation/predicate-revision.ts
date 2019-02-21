@@ -28,10 +28,13 @@ export class PredicateRevision extends BidGeneration {
     }
 
     private _improveNorm(norm: Norm, graph: DirectedGraph, preferencesOfAgent: Value[]): void {
-        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
-        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
+        // const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.length > 0);
+        // const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.length > 0);
 
-        if (isPromotes) {
+        const isPromotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.promotes) && consequent.promotes.includes('8GO8n36e03YsGJVgyWMw'));
+        const isDemotes = norm.hasConsequent.some(consequent => !isNullOrUndefined(consequent.demotes) && consequent.demotes.includes('8GO8n36e03YsGJVgyWMw'));
+
+        if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
@@ -45,11 +48,11 @@ export class PredicateRevision extends BidGeneration {
 
             }
             else if (norm.normType === NormTypes.PRO) {
-                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
@@ -57,7 +60,7 @@ export class PredicateRevision extends BidGeneration {
             }
         }
 
-        if (isDemotes) {
+        if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
                 this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
@@ -70,16 +73,15 @@ export class PredicateRevision extends BidGeneration {
                 });
             }
             else if (norm.normType === NormTypes.PRO) {
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `PR(${weight.toFixed(2)})`);
                 });
-
             }
         }
 

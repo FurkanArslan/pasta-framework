@@ -26,6 +26,7 @@ import { FirebaseData, ConsequentData, RolesData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { Queue } from '../../models/queue.model';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'negotiation-view',
@@ -41,6 +42,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     simulator: User;
     hospital: User;
+    user: User;
 
     replyInput: any;
     selectedChat: any;
@@ -61,7 +63,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     private _conditions: FirebaseData[];
     private _consequents: ConsequentData[] = [];
 
-    private lastAgentBid: Bid[] = null;
+    private lastAgentBid: Bid = null;
     graph: DirectedGraph;
 
     private visitedList = {};
@@ -77,12 +79,13 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         private scenarioFactory: ScenarioFactoryService,
         private afs: AngularFirestore,
         private normFactoryService: NormFactoryService,
+        private router: Router
     ) {
-        const user = new User('3', 'Furkan', null, Roles.POLICE);
+        this.user = new User('3', 'Furkan', null, Roles.POLICE);
         this.hospital = new User('2', 'Hospital Administration', 'assets/images/avatars/Josefina.jpg', Roles.HOSPITAL);
         this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
 
-        this.negotiation = new Negotiation('111', user, this.hospital);
+        this.negotiation = new Negotiation('111', this.user, this.hospital);
 
         // Set the private defaults
         this._unsubscribeAll = new Subject();
@@ -106,6 +109,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.ROLE_SELECTION, this.onRoleSelection, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.AGENTS_TURN, this.onAgentTurn, this);
         this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.PREFERENCE_SELECTION, this.onPreferenceSelection, this);
+        this.negotiationPhrase.bindPhraseChange(NegotiationPhrases.EXIT, this.onExit, this);
 
         this.afs.collection<Value>('values').valueChanges().subscribe((values: Value[]) => {
             values.forEach(value => {
@@ -120,9 +124,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.negotiation.agent.preferences = values;
         });
 
-        this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
-            this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
-        });
+        // this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
+        //     this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
+        // });
 
         this.afs.collection<RolesData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<RolesData>) => {
             this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<RolesData>) => doc.data());
@@ -291,6 +295,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         // Add the message to the chat
         this.negotiation.dialogs.push(newMessage);
+
+        this.negotiationPhrase.changePhrase(NegotiationPhrases.EXIT);
     }
 
     onReject(event): void {
@@ -354,26 +360,28 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     private onAgentTurn(scope): void {
+        const opponent_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
+
         if (isNull(scope.lastAgentBid)) {
-            console.log(scope.bids);
-            const user_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
             scope.graph = new DirectedGraph();
 
-            scope._createOutcomeSpace2(user_bid, scope);
+            scope._createOutcomeSpace2(opponent_bid, scope);
 
             console.log(scope.graph.leaves);
 
-            const nextNorms = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
-            scope._offerABid(nextNorms, scope, user_bid);
+            const nextNorm = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
+            scope._offerABid(nextNorm, opponent_bid, scope);
         } else {
             const inEdges = scope.graph.getInEdges(scope.lastAgentBid.consistOf[0]);
             let nextNorms = scope.lastAgentBid.consistOf[0];
 
             if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
-                nextNorms = inEdges.sort((a, b) => b.data.utility - a.data.utility)[0];
+                inEdges.sort((a, b) => b.data.utility - a.data.utility);
+
+                nextNorms = inEdges[0].data;
             }
 
-            scope._offerABid(nextNorms.data, scope, scope.lastAgentBid);
+            scope._offerABid(nextNorms, opponent_bid, scope);
         }
     }
 
@@ -401,8 +409,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         }
 
         if (!this.queue.isEmpty) {
-            root_bid.consistOf = [this.queue.dequeue()];
-            this._createOutcomeSpace2(root_bid, scope);
+            const bid = {
+                ...root_bid,
+                consistOf: [this.queue.dequeue()]
+            };
+
+            this._createOutcomeSpace2(bid, scope);
         }
 
     }
@@ -432,15 +444,42 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         }
     }
 
-    private _offerABid(norm: Norm, scope, bid: Bid): void {
-        bid.consistOf = [norm];
-        scope.lastAgentBid = bid;
+    private _offerABid(norm: Norm, bid: Bid, scope): void {
+        const opponentNorm = bid.consistOf[0];
+        const findInGraph = this.graph.getNode(opponentNorm.id);
 
-        for (const norm_ of bid.consistOf) {
-            scope.createMessage(norm_.toString(), true);
+        if (!isNullOrUndefined(findInGraph) && findInGraph.utility >= norm.utility) {
+            // Message
+            const newMessage = new Message(this.hospital.id, 'I accept your offer');
+
+            // Add the message to the chat
+            setTimeout(() => {
+                this.negotiation.dialogs.push(newMessage);
+
+                this.readyToReply();
+
+                this.negotiationPhrase.changePhrase(NegotiationPhrases.EXIT);
+            }, 2000);
+        } else {
+            setTimeout(() => {
+                const newBid = new Bid(null, this.hospital, this.user, [norm]);
+                this.lastAgentBid = newBid;
+
+                for (const norm_ of newBid.consistOf) {
+                    this.createMessage(norm_.toString(), true);
+                }
+
+                this.negotiation.bids.push(newBid);
+                this.negotiationPhrase.changePhrase(NegotiationPhrases.CONTINUE_OR_EXIT);
+            }, 2000);
         }
 
-        scope.negotiation.bids.push(bid);
-        scope.negotiationPhrase.changePhrase(NegotiationPhrases.CONTINUE_OR_EXIT);
+
+    }
+
+    private onExit(scope): void{
+        setTimeout(() => {
+            scope.router.navigate(['/thank-you']);
+        }, 2000);
     }
 }
