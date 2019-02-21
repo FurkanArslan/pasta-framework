@@ -4,7 +4,7 @@ import { NormTypes } from '../models/norm/norm-types.enum';
 import { Authorization } from '../models/norm/authorization.model';
 import { Prohibition } from '../models/norm/prohibition.model';
 import { Commitment } from '../models/norm/commitment.model';
-import { FirebaseData, ConsequentData } from '../models/data';
+import { FirebaseData, ConsequentData, RolesData } from '../models/data';
 import { Consequent } from '../models/consequent.model';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
 import { Observable } from 'rxjs/observable';
@@ -43,7 +43,7 @@ export class NormFactoryService {
      * @param  {Consequent[]} consequent
      * @returns {Norm}
      */
-    public getNorm(normType: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: ConsequentData[], id?: string): Norm {
+    public getNorm(normType: string, subject: RolesData, object: string, antecedent: FirebaseData[], consequent: ConsequentData[], id?: string): Norm {
         switch (normType) {
             case NormTypes.AUTH: return new Authorization(id, subject, object, antecedent, consequent);
             case NormTypes.PRO: return new Prohibition(id, subject, object, antecedent, consequent);
@@ -60,7 +60,7 @@ export class NormFactoryService {
      * @param  {Consequent[]} consequent
      * @returns Norm
      */
-    public getOrCreateNorm(normType: string, subject: FirebaseData, object: string, antecedent: FirebaseData[], consequent: ConsequentData[]): Norm {
+    public getOrCreateNorm(normType: string, subject: RolesData, object: string, antecedent: FirebaseData[], consequent: ConsequentData[]): Norm {
         const tempNorm = this.getNorm(normType, subject, object, antecedent, consequent);
 
         const foundedNorm = this._norms.find(norm => BidUtils.isSameNorm(norm, tempNorm));

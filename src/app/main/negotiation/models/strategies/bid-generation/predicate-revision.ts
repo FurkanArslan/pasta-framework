@@ -1,19 +1,20 @@
 import { Bid } from '../../bid.model';
 import { BidGeneration } from './bid-generation';
 import { Norm } from '../../norm/norm.model';
-import { FirebaseData, ConsequentData } from '../../data';
+import { FirebaseData, ConsequentData, RolesData, AntecedentData } from '../../data';
 import { Consequent } from '../../consequent.model';
 import { NormFactoryService } from 'app/main/negotiation/factories/norm-factory.service';
 import { DirectedGraph } from '../../graph.model';
 import { Value } from '../../value.model';
 import { isNullOrUndefined } from 'util';
 import { NormTypes } from '../../norm/norm-types.enum';
+import { StaffType } from '../../staff-type.enum';
 
 export class PredicateRevision extends BidGeneration {
-    private _conditions: FirebaseData[];
+    private _conditions: AntecedentData[];
     private _consequents: ConsequentData[];
 
-    constructor(conditions: FirebaseData[], consequents: ConsequentData[], public normFactoryService: NormFactoryService) {
+    constructor(conditions: AntecedentData[], consequents: ConsequentData[], public normFactoryService: NormFactoryService) {
         super();
 
         this._conditions = conditions;
@@ -117,7 +118,7 @@ export class PredicateRevision extends BidGeneration {
         let possibleNorms: Norm[] = [];
 
         root_norm.hasAntecedent.forEach((oldAntecedent, index) => {
-            const improvements = this._getPossibleIds(oldAntecedent.exclusive)
+            const improvements = this._getPossibleExclusives(oldAntecedent, root_norm.hasSubject)
                 .map(id => this._getAntecedent(id))
                 .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
                     root_norm.normType,
@@ -144,18 +145,18 @@ export class PredicateRevision extends BidGeneration {
             possibleNorms = possibleNorms.concat(improvements);
         });
 
-        if (root_norm.hasAntecedent.length >= 2) {
-            for (let index = 0; index < root_norm.hasAntecedent.length; index++) {
-                const tempNorm = this.normFactoryService.getOrCreateNorm(
-                    root_norm.normType,
-                    root_norm.hasSubject,
-                    root_norm.hasObject,
-                    root_norm.hasAntecedent.splice(index, 1),
-                    root_norm.hasConsequent);
+        // if (root_norm.hasAntecedent.length >= 2) {
+        //     for (let index = 0; index < root_norm.hasAntecedent.length; index++) {
+        //         const tempNorm = this.normFactoryService.getOrCreateNorm(
+        //             root_norm.normType,
+        //             root_norm.hasSubject,
+        //             root_norm.hasObject,
+        //             root_norm.hasAntecedent.splice(index, 1),
+        //             root_norm.hasConsequent);
 
-                possibleNorms.push(tempNorm);
-            }
-        }
+        //         possibleNorms.push(tempNorm);
+        //     }
+        // }
 
         if (root_norm.hasConsequent.length >= 2) {
             for (let index = 0; index < root_norm.hasConsequent.length; index++) {
@@ -177,7 +178,7 @@ export class PredicateRevision extends BidGeneration {
         let possibleNorms: Norm[] = [];
 
         root_norm.hasAntecedent.forEach((oldAntecedent, index) => {
-            const improvements = this._getPossibleIds(oldAntecedent.moreGeneral)
+            const improvements = this._getPossibleMoreGenerals(oldAntecedent, root_norm.hasSubject)
                 .map(id => this._getAntecedent(id))
                 .map(newAntecedent => this.normFactoryService.getOrCreateNorm(
                     root_norm.normType,
@@ -204,18 +205,18 @@ export class PredicateRevision extends BidGeneration {
             possibleNorms = possibleNorms.concat(improvements);
         });
 
-        this._conditions.forEach(condition => {
-            if (!this._isIncludeAntecedent(condition, root_norm.hasAntecedent)) {
-                possibleNorms.push(
-                    this.normFactoryService.getOrCreateNorm(
-                        root_norm.normType,
-                        root_norm.hasSubject,
-                        root_norm.hasObject,
-                        root_norm.hasAntecedent.concat(condition),
-                        root_norm.hasConsequent)
-                );
-            }
-        });
+        // this._conditions.forEach(condition => {
+        //     if (!this._isIncludeAntecedent(condition, root_norm.hasAntecedent)) {
+        //         possibleNorms.push(
+        //             this.normFactoryService.getOrCreateNorm(
+        //                 root_norm.normType,
+        //                 root_norm.hasSubject,
+        //                 root_norm.hasObject,
+        //                 root_norm.hasAntecedent.concat(condition),
+        //                 root_norm.hasConsequent)
+        //         );
+        //     }
+        // });
 
         return possibleNorms;
     }
@@ -272,6 +273,24 @@ export class PredicateRevision extends BidGeneration {
 
     private _getConsequent(consequent_id: string): ConsequentData {
         return this._consequents.find(condition => condition.id === consequent_id);
+    }
+
+    private _getPossibleMoreGenerals(antecedent: AntecedentData, subject: RolesData): string[] {
+        switch (subject.staff_type) {
+            case StaffType.GOVERNMENT: return !isNullOrUndefined(antecedent.moreGeneral) ? antecedent.moreGeneral : [];
+            case StaffType.HOSPITAL: return !isNullOrUndefined(antecedent.more_general_hospital) ? antecedent.more_general_hospital : [];
+            default:
+                return [];
+        }
+    }
+
+    private _getPossibleExclusives(antecedent: AntecedentData, subject: RolesData): string[] {
+        switch (subject.staff_type) {
+            case StaffType.GOVERNMENT: return !isNullOrUndefined(antecedent.exclusive) ? antecedent.exclusive : [];
+            case StaffType.HOSPITAL: return !isNullOrUndefined(antecedent.exclusive_hospital) ? antecedent.exclusive_hospital : [];
+            default:
+                return [];
+        }
     }
 
     private _getPossibleIds(array1: string[], array2?: string[]): string[] {

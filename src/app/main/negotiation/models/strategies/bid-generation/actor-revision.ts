@@ -2,16 +2,16 @@ import { Bid } from '../../bid.model';
 import { BidGeneration } from './bid-generation';
 import { Norm } from '../../norm/norm.model';
 import { NormTypes } from '../../norm/norm-types.enum';
-import { FirebaseData } from '../../data';
+import { FirebaseData, RolesData } from '../../data';
 import { NormFactoryService } from 'app/main/negotiation/factories/norm-factory.service';
 import { isNullOrUndefined } from 'util';
 import { DirectedGraph } from '../../graph.model';
 import { Value } from '../../value.model';
 
 export class ActorRevision extends BidGeneration {
-    private _roles: FirebaseData[];
+    private _roles: RolesData[];
 
-    constructor(roles: FirebaseData[], public normFactoryService: NormFactoryService) {
+    constructor(roles: RolesData[], public normFactoryService: NormFactoryService) {
         super();
 
         this._roles = roles;
@@ -95,6 +95,7 @@ export class ActorRevision extends BidGeneration {
 
             return possibleNormIds
                 .map(id => this._getRole(id))
+                .filter(role => norm.hasAntecedent.every(antecedent => antecedent.related_to.includes(role.staff_type)))
                 .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
         } catch (error) {
             return [];
@@ -107,6 +108,7 @@ export class ActorRevision extends BidGeneration {
 
             return possibleNormIds
                 .map(id => this._getRole(id))
+                .filter(role => norm.hasAntecedent.every(antecedent => antecedent.related_to.includes(role.staff_type)))
                 .map(role => this.normFactoryService.getOrCreateNorm(norm.normType, role, norm.hasObject, norm.hasAntecedent, norm.hasConsequent));
         } catch (error) {
             return [];
@@ -125,7 +127,7 @@ export class ActorRevision extends BidGeneration {
 
     }
 
-    private _getRole(role_id: string): FirebaseData {
+    private _getRole(role_id: string): RolesData {
         return this._roles.find(role => role.id === role_id);
     }
 

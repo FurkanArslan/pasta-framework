@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { NormTypes } from '../../models/norm/norm-types.enum';
 import { Observable, Subscription, zip } from 'rxjs';
-import { FirebaseData, ActionsData, ConsequentData } from '../../models/data';
+import { FirebaseData, ActionsData, ConsequentData, RolesData, AntecedentData } from '../../models/data';
 import { Consequent } from '../../models/consequent.model';
 import { NgForm } from '@angular/forms';
 import { Bid } from '../../models/bid.model';
@@ -34,8 +34,8 @@ export class DrawGraphComponent implements OnInit {
 
     private subscription: Subscription;
 
-    private _roles: FirebaseData[] = [];
-    private _conditions: FirebaseData[];
+    private _roles: RolesData[] = [];
+    private _conditions: AntecedentData[];
     private _consequents: ConsequentData[] = [];
 
     private preferences: Value[] = [
@@ -53,6 +53,11 @@ export class DrawGraphComponent implements OnInit {
         directed: true,
         padding: 10,
     };
+
+    zoom = {
+        min: 1e-50,
+        max: 1e50
+    }
 
     graphData = {
         nodes: null,
@@ -85,12 +90,12 @@ export class DrawGraphComponent implements OnInit {
         //         actions.forEach(action => data.forEach(data_ => this.consequent.push(new Consequent(data_, action))));
         //     });
 
-        this.afs.collection<FirebaseData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
-            this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
+        this.afs.collection<RolesData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<RolesData>) => {
+            this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<RolesData>) => doc.data());
         });
 
-        this.afs.collection<FirebaseData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
-            this._conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
+        this.afs.collection<AntecedentData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<AntecedentData>) => {
+            this._conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<AntecedentData>) => doc.data());
         });
 
         this.afs.collection<ConsequentData>('consequents').get().subscribe((querySnapshot: QuerySnapshot<ConsequentData>) => {
@@ -151,7 +156,6 @@ export class DrawGraphComponent implements OnInit {
         const targets = graph.getOutEdges(root_norm);
 
         console.log('targets', targets);
-        console.log('*********');
 
         if (!isNullOrUndefined(targets) && targets.length > 0) {
             targets.forEach(target => {
@@ -159,11 +163,13 @@ export class DrawGraphComponent implements OnInit {
                     this.queue.enqueue(target.data);
                 } else {
                     console.log('already visited: ', target.data);
+                    console.log('*********');
                 }
             });
         }
 
         if (!this.queue.isEmpty) {
+            console.log(this.queue.nodes.length);
             this._createOutcomeSpace2(this.queue.dequeue(), graph);
         }
     }
@@ -186,17 +192,22 @@ export class DrawGraphComponent implements OnInit {
                 new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid([target.data], graph, this.preferences);
                 new NormRevision(this.normFactoryService).improveBid([target.data], graph, this.preferences);
 
-                // const child_targets = graph.getOutEdges(target.data);
+                const child_targets = graph.getOutEdges(target.data);
+                console.log('child_targets', targets);
+                console.log('*********');
 
-                // for (const child_target of child_targets) {
-                //     new ActorRevision(this._roles, this.normFactoryService).improveBid([child_target.data], graph, this.preferences);
-                //     new PredicateRevision(this._conditions, this.normFactoryService).improveBid([child_target.data], graph, this.preferences);
-                //     new NormRevision(this.normFactoryService).improveBid([child_target.data], graph, this.preferences);
-                // }
+                for (const child_target of child_targets) {
+                    this.queue.enqueue(child_target.data);
+                }
             }
-            // targets.forEach(target => {
-            //     this._createOutcomeSpace(target.data, graph);
-            // });
+        }
+
+        while (!this.queue.isEmpty) {
+            const child_target = this.queue.dequeue();
+
+            new ActorRevision(this._roles, this.normFactoryService).improveBid([child_target], graph, this.preferences);
+            new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid([child_target], graph, this.preferences);
+            new NormRevision(this.normFactoryService).improveBid([child_target], graph, this.preferences);
         }
     }
 

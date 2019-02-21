@@ -22,7 +22,7 @@ import { Value } from '../../models/value.model';
 import { AngularFirestore, QuerySnapshot, QueryDocumentSnapshot } from '@angular/fire/firestore';
 
 import { NormRevision } from '../../models/strategies/bid-generation/norm-revision';
-import { FirebaseData, ConsequentData } from '../../models/data';
+import { FirebaseData, ConsequentData, RolesData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { Queue } from '../../models/queue.model';
@@ -57,7 +57,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     // Private
     private _unsubscribeAll: Subject<any>;
     private bids: Bid[] = [];
-    private _roles: FirebaseData[] = [];
+    private _roles: RolesData[] = [];
     private _conditions: FirebaseData[];
     private _consequents: ConsequentData[] = [];
 
@@ -124,8 +124,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
         });
 
-        this.afs.collection<FirebaseData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
-            this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
+        this.afs.collection<RolesData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<RolesData>) => {
+            this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<RolesData>) => doc.data());
         });
 
         this.afs.collection<FirebaseData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {

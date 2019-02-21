@@ -105,10 +105,23 @@ export class GraphRendererComponent implements OnChanges {
         const cy = cytoscape({
             container: cy_contianer,
             layout: this.layout,
+            zoom: 1,
+            pan: { x: 0, y: 0 },
+            zoomingEnabled: true,
+            userZoomingEnabled: true,
             minZoom: this.zoom.min,
             maxZoom: this.zoom.max,
             style: this.style,
             elements: this.elements,
+            // headless: false,
+            // styleEnabled: true,
+            // hideEdgesOnViewport: false,
+            // hideLabelsOnViewport: false,
+            // textureOnViewport: false,
+            // motionBlur: false,
+            // motionBlurOpacity: 0.2,
+            wheelSensitivity: 0.1,
+            // pixelRatio: 'auto'
         });
 
         cy.on('tap', 'node', e => {
