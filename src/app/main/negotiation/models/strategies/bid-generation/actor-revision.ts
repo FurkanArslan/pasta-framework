@@ -29,11 +29,11 @@ export class ActorRevision extends BidGeneration {
 
         if (isPromotes) {
             if (norm.normType === NormTypes.AUTH) {
-                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
+                this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -43,8 +43,8 @@ export class ActorRevision extends BidGeneration {
                 this._getMoreGeneralNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -54,11 +54,11 @@ export class ActorRevision extends BidGeneration {
 
         if (isDemotes) {
             if (norm.normType === NormTypes.AUTH) {
-                this._getMoreGeneralNorms(norm).forEach(norm_ => {
+                this._getMoreExclusiveNorms(norm).forEach(norm_ => {
                     const weight = norm.hasConsequent.reduce((accumulator, cons) => {
                         return accumulator
-                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
-                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
+                            + cons.promotes.reduce((accumulator_, preferenceId) => accumulator_ + this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0)
+                            + cons.demotes.reduce((accumulator_, preferenceId) => accumulator_ - this._findPreferenceWeight(preferenceId, preferencesOfAgent), 0);
                     }, 0);
 
                     graph.addEdge(norm, norm_, +weight.toFixed(2), `AR(${weight.toFixed(2)})`);
@@ -87,20 +87,6 @@ export class ActorRevision extends BidGeneration {
         const preference = preferencesOfAgent.find(pref => pref.id === preferenceId);
 
         return !isNullOrUndefined(preference) ? preference.weight : 0;
-    };
-
-    private _getPromotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
-        switch (normType) {
-            case NormTypes.AUTH: return total + preferenceValue;
-            case NormTypes.PRO: return total - preferenceValue;
-        }
-    }
-
-    private _getDemotesWeight(normType: NormTypes, total: number, preferenceValue: number): number {
-        switch (normType) {
-            case NormTypes.AUTH: return total - preferenceValue;
-            case NormTypes.PRO: return total + preferenceValue;
-        }
     }
 
     private _getMoreGeneralNorms(norm: Norm): Norm[] {
