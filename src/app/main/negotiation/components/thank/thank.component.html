@@ -15,21 +15,19 @@
 
             </div>
 
-            <form [formGroup]="form" novalidate>
+            <!-- <form [formGroup]="form" (submit)="onSubmit()">
+                
+            </form> -->
+
+            <div class="form">
                 <div class="message">
                     Could you please evaluate the agreement you obtained as a result of the bargain?
                 </div>
 
-                <star-rating [rating]="rating" [numOfStars]="'10'" (onClick)="onSubmit($event)" [speed]="'noticeable'" (onRatingChange)="onSubmit($event)"> </star-rating>
+                <star-rating [rating]="rating" [numOfStars]="'10'" [speed]="'noticeable'"  [hoverEnabled]="true" (ratingChange)="onRatingChange($event)">
+                </star-rating>
 
-                <!-- <div class="stock-inventory__buttons">
-                    <button type="submit" [disabled]="form.invalid">
-                        Submit
-                    </button>
-                </div> -->
-
-                <!-- <pre>{{ form.value | json }}</pre> -->
-            </form>
+            </div>
         </div>
 
     </div>

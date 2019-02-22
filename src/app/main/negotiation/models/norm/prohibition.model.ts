@@ -14,16 +14,18 @@ export class Prohibition extends Norm {
         if (this.compoundAntecedent.includes('always')) {
             return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
         }
-        
+
         return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when not ${this.compoundAntecedent}.`;
     }
 
-    public toNormRepresentation(): string {
+    public toNormRepresentation(isIncludeUtility: boolean): string {
+        let representation = `P(${this.hasSubject.shortName}, HA, not ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName})`;
+
         if (this.hasAntecedent[0].shortName === 'true') {
-            return `P(${this.hasSubject.shortName}, HA, ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName}):${this.utility}`;
+            representation = `P(${this.hasSubject.shortName}, HA, ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName})`;
         }
-        
-        return `P(${this.hasSubject.shortName}, HA, not ${this.compoundAntecedentWithShortName}, ${this.compoundConsequentWithShortName}):${this.utility}`;
+
+        return isIncludeUtility ? `${representation}:${this.utility}` : representation;
     }
 
 }

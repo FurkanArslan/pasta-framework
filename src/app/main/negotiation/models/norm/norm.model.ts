@@ -69,5 +69,5 @@ export abstract class Norm {
     }
 
     public abstract toString(): string;
-    public abstract toNormRepresentation(): string;
+    public abstract toNormRepresentation(isIncludeUtility: boolean): string;
 }

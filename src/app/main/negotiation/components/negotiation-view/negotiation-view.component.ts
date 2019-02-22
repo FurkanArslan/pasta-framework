@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild, ViewChildren, ViewEncapsulation } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, interval } from 'rxjs';
 
 import { FusePerfectScrollbarDirective } from '@fuse/directives/fuse-perfect-scrollbar/fuse-perfect-scrollbar.directive';
 
@@ -27,6 +27,10 @@ import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { Queue } from '../../models/queue.model';
 import { Router } from '@angular/router';
+
+import * as moment from 'moment';
+import { takeUntil, map, filter } from 'rxjs/operators';
+import { PastaService } from '../pasta.service';
 
 @Component({
     selector: 'negotiation-view',
@@ -69,6 +73,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     private visitedList = {};
     private queue = new Queue();
 
+    negotiationEndTime = null;
+
+    countdown: any;
+
     /**
      * Constructor
      *
@@ -79,9 +87,10 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         private scenarioFactory: ScenarioFactoryService,
         private afs: AngularFirestore,
         private normFactoryService: NormFactoryService,
-        private router: Router
+        private router: Router,
+        private _pastaService: PastaService
     ) {
-        this.user = new User('3', 'Furkan', null, Roles.POLICE);
+        this.user = new User('3', 'Government Agency', null, Roles.POLICE);
         this.hospital = new User('2', 'Hospital Administration', 'assets/images/avatars/Josefina.jpg', Roles.HOSPITAL);
         this.simulator = new User('1', 'Simulator', 'assets/images/avatars/simulator.png');
 
@@ -90,6 +99,14 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         // Set the private defaults
         this._unsubscribeAll = new Subject();
         this.graph = null;
+
+        // Set the defaults
+        this.countdown = {
+            minutes: '',
+            seconds: ''
+        };
+
+        moment.locale('tr');
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -139,6 +156,35 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.afs.collection<ConsequentData>('consequents').get().subscribe((querySnapshot: QuerySnapshot<ConsequentData>) => {
             this._consequents = querySnapshot.docs.map((doc: QueryDocumentSnapshot<ConsequentData>) => doc.data());
         });
+
+        const currDate = moment();
+        const eventDate = moment().add(10, 'minutes');
+
+        this._pastaService.saveStartDate(currDate.toDate());
+
+        let diff = eventDate.diff(currDate, 'seconds');
+
+        this.countdown = this._secondsToRemaining(diff);
+
+        const countDown = interval(1000).pipe(
+            filter(() => diff > 0),
+            map(value => {
+                return diff = diff - 1;
+            }),
+            map(value => {
+                return this._secondsToRemaining(value);
+            })
+        );
+
+        countDown
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe(value => {
+                this.countdown = value;
+
+                if (diff <= 0) {
+                    this.onWalkAway();
+                }
+            });
     }
 
     /**
@@ -160,6 +206,21 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         this.readyToReply();
 
         this.negotiationPhrase.changePhrase(NegotiationPhrases.WELCOME);
+    }
+
+    /**
+    * Converts given seconds to a remaining time
+    *
+    * @param seconds
+    * @private
+    */
+    private _secondsToRemaining(seconds): any {
+        const timeLeft = moment.duration(seconds, 'seconds');
+
+        return {
+            minutes: timeLeft.minutes(),
+            seconds: timeLeft.seconds()
+        };
     }
 
     /**
@@ -296,6 +357,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         // Add the message to the chat
         this.negotiation.dialogs.push(newMessage);
 
+        const bid = this.negotiation.bids[this.negotiation.bids.length - 1];
+        this._pastaService.saveAgreement(bid, bid.consistOf[0].utility);
+
         this.negotiationPhrase.changePhrase(NegotiationPhrases.EXIT);
     }
 
@@ -303,6 +367,15 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         event.preventDefault();
 
         this.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
+    }
+
+    onWalkAway(): void {
+        const newMessage = new Message(this.negotiation.user.id, 'I am sorry, but I have to go. See you later...');
+
+        // Add the message to the chat
+        this.negotiation.dialogs.push(newMessage);
+
+        this.negotiationPhrase.changePhrase(NegotiationPhrases.EXIT);
     }
 
     private setScenario(selectedScenario: string): void {
@@ -359,16 +432,20 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     private onAgentTurn(scope): void {
         const opponent_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
+        scope._pastaService.addNewBid(opponent_bid);
 
         if (isNull(scope.lastAgentBid)) {
+            const newMessage = new Message(scope.hospital.id, 'Let me think my offer.');
+            scope.negotiation.dialogs.push(newMessage);
+
             scope.graph = new DirectedGraph();
 
-            scope._createOutcomeSpace2(opponent_bid, scope);
+            setTimeout(() => {
+                scope._createOutcomeSpace2(opponent_bid, scope);
 
-            console.log(scope.graph.leaves);
-
-            const nextNorm = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
-            scope._offerABid(nextNorm, opponent_bid, scope);
+                const nextNorm = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
+                scope._offerABid(nextNorm, opponent_bid, scope);
+            }, 1000);
         } else {
             const inEdges = scope.graph.getInEdges(scope.lastAgentBid.consistOf[0]);
             let nextNorms = scope.lastAgentBid.consistOf[0];
@@ -384,7 +461,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     private _createOutcomeSpace2(root_bid: Bid, scope): void {
-        console.log('Root-bid:', root_bid.consistOf);
+        // console.log('Root-bid:', root_bid.consistOf);
         this.visitedList[root_bid.consistOf[0].id] = true;
 
         new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
@@ -393,15 +470,15 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         const targets = scope.graph.getOutEdges(root_bid.consistOf[0]);
 
-        console.log('targets', targets);
-        console.log('*********');
+        // console.log('targets', targets);
+        // console.log('*********');
 
         if (!isNullOrUndefined(targets) && targets.length > 0) {
             targets.forEach(target => {
                 if (!this.visitedList[target.data.id]) {
                     this.queue.enqueue(target.data);
                 } else {
-                    console.log('already visited: ', target.data);
+                    // console.log('already visited: ', target.data);
                 }
             });
         }
@@ -456,6 +533,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
                 this.readyToReply();
 
+                this._pastaService.saveAgreement(bid, findInGraph.utility);
+
                 this.negotiationPhrase.changePhrase(NegotiationPhrases.EXIT);
             }, 2000);
         } else {
@@ -467,6 +546,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
                     this.createMessage(norm_.toString(), true);
                 }
 
+                this._pastaService.addNewBid(newBid);
                 this.negotiation.bids.push(newBid);
                 this.negotiationPhrase.changePhrase(NegotiationPhrases.CONTINUE_OR_EXIT);
             }, 2000);
@@ -475,7 +555,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     }
 
-    private onExit(scope): void{
+    private onExit(scope): void {
+        scope._pastaService.saveEndDate(moment().toDate());
+
         setTimeout(() => {
             scope.router.navigate(['/thank-you']);
         }, 2000);

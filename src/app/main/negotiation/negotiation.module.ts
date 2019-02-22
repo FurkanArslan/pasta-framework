@@ -28,6 +28,8 @@ import { ThankComponent } from './components/thank/thank.component';
 import { StarRatingModule } from 'angular-star-rating';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Login2Component } from './components/login-2/login-2.component';
+import { FuseCountdownModule } from '@fuse/components';
+import { PastaService } from './components/pasta.service';
 
 const routes: Routes = [
     {
@@ -82,13 +84,14 @@ const routes: Routes = [
         MatSliderModule,
         MatTooltipModule,
         MatCheckboxModule,
-
+        FuseCountdownModule,
         StarRatingModule.forChild()
     ],
     providers: [
         NegotiationService,
         ScenarioFactoryService,
-        NormFactoryService
+        NormFactoryService,
+        PastaService
     ]
 })
 export class NegotiationModule {

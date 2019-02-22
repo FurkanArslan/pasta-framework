@@ -122,7 +122,7 @@ export class DrawGraphComponent implements OnInit {
                 this.graphData.nodes.push({
                     data: {
                         id: source.id,
-                        name: source.toNormRepresentation(),
+                        name: source.toNormRepresentation(true),
                         weight: 100,
                         colorCode: 'blue',
                         shapeType: 'roundrectangle',

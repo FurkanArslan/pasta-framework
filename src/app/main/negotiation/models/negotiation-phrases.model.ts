@@ -28,6 +28,7 @@ export class NegotiationPhrase {
         this._phrase.from(NegotiationPhrases.USER_TURN).to(NegotiationPhrases.AGENTS_TURN);
         this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.CONTINUE_OR_EXIT);
         this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.EXIT);
+        this._phrase.from(NegotiationPhrases.USER_TURN).to(NegotiationPhrases.EXIT);
 
         // Bid generation states
         this._phrase.from(NegotiationPhrases.AGENTS_TURN).to(NegotiationPhrases.SELECT_DEMOTES_AND_PROMOTES);
