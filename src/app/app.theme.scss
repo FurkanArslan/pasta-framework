@@ -81,6 +81,8 @@ $typography: mat-typography-config(
 @import "src/app/layout/components/chat-panel/chat-panel.theme";
 @import "src/app/layout/components/toolbar/toolbar.theme";
 @import "src/app/main/negotiation/negotiation.theme";
+@import "src/app/main/negotiation/components/login-2/login-2.theme";
+@import "src/app/main/negotiation/components/thank/thank.theme";
 
 // Define a mixin for easier access
 @mixin components-theme($theme) {
@@ -91,6 +93,8 @@ $typography: mat-typography-config(
 
     // Apps
     @include chat-theme($theme);
+    @include login-2-theme($theme);
+    @include coming-soon-theme($theme);
 }
 
 // -----------------------------------------------------------------------------------------------------

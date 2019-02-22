@@ -337,11 +337,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     private onWelcome(scope): void {
         scope.createMessage('Hi!');
-        scope.createMessage('Welcome to our Negotiation Simulation!');
-        scope.createMessage('I am the Simulator');
-        scope.createMessage('I will guide you during simulation.');
+        scope.createMessage('I am Jane.');
+        scope.createMessage('How can I help you?');
 
-        // scope.negotiationPhrase.changePhrase(NegotiationPhrases.SCENARIO_SELECTION);
         scope.negotiationPhrase.changePhrase(NegotiationPhrases.USER_TURN);
     }
 

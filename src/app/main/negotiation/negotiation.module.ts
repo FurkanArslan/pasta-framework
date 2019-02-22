@@ -2,9 +2,9 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import {
-    MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, 
-    MatInputModule, MatListModule, MatMenuModule, MatRadioModule, 
-    MatSidenavModule, MatToolbarModule, MatSelectModule, MatSliderModule, MatTooltipModule
+    MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule,
+    MatInputModule, MatListModule, MatMenuModule, MatRadioModule,
+    MatSidenavModule, MatToolbarModule, MatSelectModule, MatSliderModule, MatTooltipModule, MatCheckboxModule
 } from '@angular/material';
 
 import { FuseSharedModule } from '@fuse/shared.module';
@@ -27,10 +27,15 @@ import { ThankComponent } from './components/thank/thank.component';
 
 import { StarRatingModule } from 'angular-star-rating';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { Login2Component } from './components/login-2/login-2.component';
 
 const routes: Routes = [
     {
         path: '',
+        component: Login2Component,
+    },
+    {
+        path: 'negotiation',
         component: NegotiationComponent,
         children: [
             { path: '', component: NegotiationViewComponent },
@@ -47,43 +52,44 @@ const routes: Routes = [
 ];
 
 @NgModule({
-   declarations: [
-      NegotiationComponent,
-      NegotiationViewComponent,
-      NegotiationInputComponent,
-      PromotionAndDemotionSelectionComponent,
-      PreferencesSelectionComponent,
-      ContinueOrExitComponent,
-      EnumToArrayPipe,
-      DrawGraphComponent,
-      GraphRendererComponent,
-      ThankComponent
-   ],
-   imports: [
-      RouterModule.forChild(routes),
-      MatButtonModule,
-      MatCardModule,
-      MatFormFieldModule,
-      MatIconModule,
-      MatInputModule,
-      MatListModule,
-      MatMenuModule,
-      MatRadioModule,
-      MatSidenavModule,
-      MatToolbarModule,
-      FuseSharedModule,
-      MatSelectModule,
-      MatSliderModule,
-      MatTooltipModule,
+    declarations: [
+        NegotiationComponent,
+        NegotiationViewComponent,
+        NegotiationInputComponent,
+        PromotionAndDemotionSelectionComponent,
+        PreferencesSelectionComponent,
+        ContinueOrExitComponent,
+        EnumToArrayPipe,
+        DrawGraphComponent,
+        GraphRendererComponent,
+        ThankComponent,
+        Login2Component
+    ],
+    imports: [
+        RouterModule.forChild(routes),
+        MatButtonModule,
+        MatCardModule,
+        MatFormFieldModule,
+        MatIconModule,
+        MatInputModule,
+        MatListModule,
+        MatMenuModule,
+        MatRadioModule,
+        MatSidenavModule,
+        MatToolbarModule,
+        FuseSharedModule,
+        MatSelectModule,
+        MatSliderModule,
+        MatTooltipModule,
+        MatCheckboxModule,
 
-      StarRatingModule.forChild()
-   ],
-   providers: [
-      NegotiationService,
-      ScenarioFactoryService,
-      NormFactoryService
-   ]
+        StarRatingModule.forChild()
+    ],
+    providers: [
+        NegotiationService,
+        ScenarioFactoryService,
+        NormFactoryService
+    ]
 })
-export class NegotiationModule
-{
+export class NegotiationModule {
 }

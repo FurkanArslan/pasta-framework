@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FuseConfigService } from '@fuse/services/config.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { StarRatingConfigService } from 'angular-star-rating';
+import { fuseAnimations } from '@fuse/animations';
 
 @Component({
     selector: 'app-thank',
     templateUrl: './thank.component.html',
     styleUrls: ['./thank.component.scss'],
-    providers: [StarRatingConfigService]
+    providers: [StarRatingConfigService],
+    encapsulation: ViewEncapsulation.None,
+    animations   : fuseAnimations
 })
 export class ThankComponent implements OnInit {
 
