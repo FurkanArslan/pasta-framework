@@ -31,6 +31,8 @@ import { Router } from '@angular/router';
 import * as moment from 'moment';
 import { takeUntil, map, filter } from 'rxjs/operators';
 import { PastaService } from '../pasta.service';
+import { Bidding } from '../../models/bidding-strategies/bidding';
+import { TimeBasedConcession } from '../../models/bidding-strategies/time-based-concession';
 
 @Component({
     selector: 'negotiation-view',
@@ -62,20 +64,16 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     // Private
     private _unsubscribeAll: Subject<any>;
-    private bids: Bid[] = [];
-    private _roles: RolesData[] = [];
-    private _conditions: FirebaseData[];
-    private _consequents: ConsequentData[] = [];
 
     private lastAgentBid: Bid = null;
     graph: DirectedGraph;
 
-    private visitedList = {};
-    private queue = new Queue();
-
     negotiationEndTime = null;
 
     countdown: any;
+    diff: number;
+
+    private biddingStrategy: Bidding;
 
     /**
      * Constructor
@@ -107,6 +105,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         };
 
         moment.locale('tr');
+
+        this.biddingStrategy = new TimeBasedConcession(normFactoryService);
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -139,37 +139,38 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             });
 
             this.negotiation.agent.preferences = values;
+            this.biddingStrategy.preferences = values;
         });
 
-        // this.afs.collection<Bid>('bids').valueChanges().subscribe(bids_ => {
-        //     this.bids = bids_.map(bid => new Bid(bid.id, bid.offeredBy, bid.offeredTo, bid.consistOf, bid.demotes, bid.promotes, bid.cdate));
-        // });
-
         this.afs.collection<RolesData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<RolesData>) => {
-            this._roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<RolesData>) => doc.data());
+            this.biddingStrategy.roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<RolesData>) => doc.data());
         });
 
         this.afs.collection<FirebaseData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
-            this._conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
+            this.biddingStrategy.conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data());
         });
 
         this.afs.collection<ConsequentData>('consequents').get().subscribe((querySnapshot: QuerySnapshot<ConsequentData>) => {
-            this._consequents = querySnapshot.docs.map((doc: QueryDocumentSnapshot<ConsequentData>) => doc.data());
+            this.biddingStrategy.consequents = querySnapshot.docs.map((doc: QueryDocumentSnapshot<ConsequentData>) => doc.data());
         });
 
+        this._startCountDown();
+    }
+
+    private _startCountDown(): void {
         const currDate = moment();
         const eventDate = moment().add(10, 'minutes');
 
         this._pastaService.saveStartDate(currDate.toDate());
 
-        let diff = eventDate.diff(currDate, 'seconds');
+        this.diff = eventDate.diff(currDate, 'seconds');
 
-        this.countdown = this._secondsToRemaining(diff);
+        this.countdown = this._secondsToRemaining(this.diff);
 
         const countDown = interval(1000).pipe(
-            filter(() => diff > 0),
+            filter(() => this.diff > 0),
             map(value => {
-                return diff = diff - 1;
+                return this.diff = this.diff - 1;
             }),
             map(value => {
                 return this._secondsToRemaining(value);
@@ -181,7 +182,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             .subscribe(value => {
                 this.countdown = value;
 
-                if (diff <= 0) {
+                if (this.diff <= 0) {
                     this.onWalkAway();
                 }
             });
@@ -227,6 +228,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * On destroy
      */
     ngOnDestroy(): void {
+        this._pastaService.saveEndDate(moment().toDate());
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
@@ -434,94 +436,46 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         const opponent_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
         scope._pastaService.addNewBid(opponent_bid);
 
-        if (isNull(scope.lastAgentBid)) {
+        if (!scope.biddingStrategy.isGraphGenerated) {
             const newMessage = new Message(scope.hospital.id, 'Let me think my offer.');
             scope.negotiation.dialogs.push(newMessage);
-
-            scope.graph = new DirectedGraph();
-
-            setTimeout(() => {
-                scope._createOutcomeSpace2(opponent_bid, scope);
-
-                const nextNorm = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
-                scope._offerABid(nextNorm, opponent_bid, scope);
-            }, 1000);
-        } else {
-            const inEdges = scope.graph.getInEdges(scope.lastAgentBid.consistOf[0]);
-            let nextNorms = scope.lastAgentBid.consistOf[0];
-
-            if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
-                inEdges.sort((a, b) => b.data.utility - a.data.utility);
-
-                nextNorms = inEdges[0].data;
-            }
-
-            scope._offerABid(nextNorms, opponent_bid, scope);
-        }
-    }
-
-    private _createOutcomeSpace2(root_bid: Bid, scope): void {
-        // console.log('Root-bid:', root_bid.consistOf);
-        this.visitedList[root_bid.consistOf[0].id] = true;
-
-        new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
-        new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
-        new NormRevision(this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
-
-        const targets = scope.graph.getOutEdges(root_bid.consistOf[0]);
-
-        // console.log('targets', targets);
-        // console.log('*********');
-
-        if (!isNullOrUndefined(targets) && targets.length > 0) {
-            targets.forEach(target => {
-                if (!this.visitedList[target.data.id]) {
-                    this.queue.enqueue(target.data);
-                } else {
-                    // console.log('already visited: ', target.data);
-                }
-            });
         }
 
-        if (!this.queue.isEmpty) {
-            const bid = {
-                ...root_bid,
-                consistOf: [this.queue.dequeue()]
-            };
+        setTimeout(() => {
+            const nextNorm = scope.biddingStrategy.getOffer(opponent_bid, scope.diff);
 
-            this._createOutcomeSpace2(bid, scope);
-        }
+            scope._offerABid(nextNorm, opponent_bid, scope);
+        }, 1000);
 
-    }
+        // if (isNull(scope.lastAgentBid)) {
+        //     const newMessage = new Message(scope.hospital.id, 'Let me think my offer.');
+        //     scope.negotiation.dialogs.push(newMessage);
 
-    private _createOutcomeSpace(root_bid: Bid, scope): void {
-        console.log('Root-bid:', root_bid.consistOf);
+        //     scope.graph = new DirectedGraph();
 
-        new ActorRevision(this._roles, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
-        new PredicateRevision(this._conditions, this._consequents, this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
-        new NormRevision(this.normFactoryService).improveBid(root_bid.consistOf, scope.graph, this.negotiation.agent.preferences);
+        //     setTimeout(() => {
+        //         scope._createOutcomeSpace2(opponent_bid, scope);
 
-        const targets = scope.graph.getOutEdges(root_bid.consistOf[0]);
+        //         const nextNorm = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
+        //         scope._offerABid(nextNorm, opponent_bid, scope);
+        //     }, 1000);
+        // } else {
+        //     const inEdges = scope.graph.getInEdges(scope.lastAgentBid.consistOf[0]);
+        //     let nextNorms = scope.lastAgentBid.consistOf[0];
 
-        console.log('targets', targets);
-        console.log('*********');
+        //     if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
+        //         inEdges.sort((a, b) => b.data.utility - a.data.utility);
 
-        if (!isNullOrUndefined(targets) && targets.length > 0) {
-            targets.forEach(target => {
-                if (!this.visitedList[target.data.id]) {
-                    this.visitedList[target.data.id] = true;
-                    root_bid.consistOf = [target.data];
-                    this._createOutcomeSpace(root_bid, scope);
-                } else {
-                    console.log('already visited: ', target.data);
-                }
-            });
-        }
+        //         nextNorms = inEdges[0].data;
+        //     }
+
+        //     scope._offerABid(nextNorms, opponent_bid, scope);
+        // }
     }
 
     private _offerABid(norm: Norm, bid: Bid, scope): void {
         const opponentNorm = bid.consistOf[0];
-        const findInGraph = this.graph.getNode(opponentNorm.id);
+        const findInGraph = this.biddingStrategy.graph.getNode(opponentNorm.id);
 
         if (!isNullOrUndefined(findInGraph) && findInGraph.utility >= norm.utility) {
             // Message

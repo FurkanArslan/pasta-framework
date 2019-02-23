@@ -14,12 +14,16 @@ export class DirectedGraph {
     private _outEdges: Map<Norm, Edge[]>;
     private _inEdges: Map<Norm, Edge[]>;
 
+    private _maxDepth: number;
+
     /**
      * Create a new instance.
      */
     constructor(edges?: Map<Norm, Edge[]>) {
         this._outEdges = edges || new Map<Norm, Edge[]>();
         this._inEdges = edges || new Map<Norm, Edge[]>();
+
+        this._maxDepth = 0;
     }
 
 
@@ -42,6 +46,7 @@ export class DirectedGraph {
         }
 
         this._setTargetUtility(source, target, weight || 0);
+        this._setDepth(source, target);
 
         outEdgesSource.push({ data: target, weight: weight || 0, name: name });
         inEdgesTarget.push({ data: source, weight: weight || 0, name: name });
@@ -88,6 +93,17 @@ export class DirectedGraph {
 
         for (const edge of outEdgesOfTarget) {
             this._setTargetUtility(target, edge.data, edge.weight);
+        }
+    }
+
+    private _setDepth(source, target): void{
+        target.level = source.level + 1;
+        this.maxDepth = source.level + 1;
+
+        const outEdgesOfTarget = this.getOutEdges(target);
+
+        for (const edge of outEdgesOfTarget) {
+            this._setDepth(target, edge.data);
         }
     }
 
@@ -166,6 +182,14 @@ export class DirectedGraph {
     }
 
     /**
+     * @param  {number} level
+     * @returns Norm
+     */
+    getNodesByLevel(level: number): Norm[] {
+        return [...Array.from(this._outEdges.entries())].map(x => x[0]).filter(x => x.level === level);
+    }
+
+    /**
      * Create a shallow copy of this graph (copies edge map only).
      */
     shallowClone(): DirectedGraph {
@@ -237,6 +261,16 @@ export class DirectedGraph {
         const i = parents.indexOf(node);
         if (i !== -1) {
             throw new Error(`found circular reference ${parents.slice(i).join(' -> ')} -> ${node}`);
+        }
+    }
+
+    public get maxDepth(): number {
+        return this._maxDepth;
+    }
+
+    public set maxDepth(value: number) {
+        if (value > this._maxDepth) {
+            this._maxDepth = value;
         }
     }
 }

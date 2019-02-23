@@ -8,10 +8,9 @@ import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { FirebaseData, ActionsData, ConsequentData } from '../../models/data';
+import { FirebaseData, ConsequentData } from '../../models/data';
 import { Observable } from 'rxjs/Observable';
-import { Subscription, forkJoin, zip } from 'rxjs';
-import { isNullOrUndefined } from 'util';
+import { Subscription } from 'rxjs/Subscription';
 import { Consequent } from '../../models/consequent.model';
 
 @Component({
@@ -52,8 +51,6 @@ export class NegotiationInputComponent implements OnInit {
         this.roles$ = this.afs.collection<FirebaseData>('roles-v2').valueChanges();
         this.conditions$ = this.afs.collection<FirebaseData>('conditions-v2').valueChanges();
         this.consequents$ = this.afs.collection<ConsequentData>('consequents').valueChanges();
-
-        // this.subscription.add(zippedCollections$);
     }
 
     sendBid(event): void {
@@ -63,7 +60,6 @@ export class NegotiationInputComponent implements OnInit {
             // Add the norm to the bid
             const norm = this.getNorm();
             this.norms.push(norm);
-            // this.currentBid.consistOf.push(norm);
 
             const currentBid = this._getOrCreateBid();
 
@@ -85,7 +81,6 @@ export class NegotiationInputComponent implements OnInit {
             // Add the norm to the bid
             const norm = this.getNorm();
             this.norms.push(norm);
-            // this.currentBid.consistOf.push(norm);
 
             // Add the message to the chat
             this.createMessage(norm.toString());
@@ -93,20 +88,10 @@ export class NegotiationInputComponent implements OnInit {
     }
 
     private _getOrCreateBid(): Bid {
-        // const foundedBid = this.bids
-        //     .filter(bid_ => bid_.consistOf.length === this.norms.length)
-        //     .find(bid_ => this._includes(this.norms, bid_.consistOf));
+        const id = this.afs.createId();
+        const newBid = new Bid(id, this.negotiation.user, this.negotiation.agent, this.norms);
 
-        // if (!isNullOrUndefined(foundedBid)) {
-        //     return foundedBid;
-        // } else {
-            const id = this.afs.createId();
-            const newBid = new Bid(id, this.negotiation.user, this.negotiation.agent, this.norms);
-
-            // this.afs.collection<Bid>('bids').doc(id).set(newBid);
-
-            return newBid;
-        // }
+        return newBid;
     }
 
     /**
@@ -123,7 +108,7 @@ export class NegotiationInputComponent implements OnInit {
     private getNorm(): Norm {
         const values = this.replyForm.value;
 
-        return this.normFactoryService.getOrCreateNorm(values.norm, values.subject, this.negotiation.agent.name, values.condition, values.what);
+        return this.normFactoryService.getOrCreateNorm(values.norm, values.subject, this.negotiation.agent.name, [values.condition], [values.what]);
     }
 
 }

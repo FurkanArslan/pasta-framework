@@ -11,6 +11,8 @@ export abstract class Norm {
     private _utilityValue: number;
     private _isInitialUtility: boolean;
 
+    private _level: number;
+    
     constructor(id: string, subject: RolesData, object: string, antecedent: AntecedentData[], consequent: ConsequentData[]) {
         this.id = id;
         this.hasSubject = subject;
@@ -19,6 +21,8 @@ export abstract class Norm {
         this.hasConsequent = consequent || [];
         this._utilityValue = 0;
         this._isInitialUtility = true;
+
+        this._level = 0;
     }
 
     get compoundConsequent(): string {
@@ -66,6 +70,16 @@ export abstract class Norm {
 
     get utility(): number {
         return this._utilityValue;
+    }
+
+    public get level(): number {
+        return this._level;
+    }
+
+    public set level(value: number) {
+        if (value && (value > this._level)) {
+            this._level = value;
+        }
     }
 
     public abstract toString(): string;
