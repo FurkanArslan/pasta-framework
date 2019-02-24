@@ -1,8 +1,6 @@
 import { Bidding } from './bidding';
 import { Bid } from '../bid.model';
 import { NormFactoryService } from '../../factories/norm-factory.service';
-import { RolesData, FirebaseData, ConsequentData } from '../data';
-import { Value } from '../value.model';
 import { DirectedGraph } from '../graph.model';
 import { Norm } from '../norm/norm.model';
 

@@ -7,8 +7,8 @@ import { Bid } from '../../models/bid.model';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { NegotiationPhrase, NegotiationPhrases } from '../../models/negotiation-phrases.model';
-import { AngularFirestore } from '@angular/fire/firestore';
-import { FirebaseData, ConsequentData } from '../../models/data';
+import { AngularFirestore, QuerySnapshot, QueryDocumentSnapshot } from '@angular/fire/firestore';
+import { FirebaseData, ConsequentData, RolesData } from '../../models/data';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 import { Consequent } from '../../models/consequent.model';
@@ -25,9 +25,9 @@ export class NegotiationInputComponent implements OnInit {
 
     normTypes = NormTypes;
 
-    roles$: Observable<FirebaseData[]>;
-    conditions$: Observable<FirebaseData[]>;
-    consequents$: Observable<ConsequentData[]>;
+    roles: FirebaseData[];
+    conditions: FirebaseData[];
+    consequents: ConsequentData[];
 
     consequent: Consequent[] = [];
 
@@ -48,9 +48,26 @@ export class NegotiationInputComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.roles$ = this.afs.collection<FirebaseData>('roles-v2').valueChanges();
-        this.conditions$ = this.afs.collection<FirebaseData>('conditions-v2').valueChanges();
-        this.consequents$ = this.afs.collection<ConsequentData>('consequents').valueChanges();
+        this.afs.collection<RolesData>('roles-v2').get().subscribe((querySnapshot: QuerySnapshot<RolesData>) => {
+            this.roles = querySnapshot.docs.map((doc: QueryDocumentSnapshot<RolesData>) => doc.data()).sort((a, b) => this._sortByName(a, b));
+        });
+
+        this.afs.collection<FirebaseData>('conditions-v2').get().subscribe((querySnapshot: QuerySnapshot<FirebaseData>) => {
+            this.conditions = querySnapshot.docs.map((doc: QueryDocumentSnapshot<FirebaseData>) => doc.data()).sort((a, b) => this._sortByName(a, b));
+        });
+
+        this.afs.collection<ConsequentData>('consequents').get().subscribe((querySnapshot: QuerySnapshot<ConsequentData>) => {
+            this.consequents = querySnapshot.docs.map((doc: QueryDocumentSnapshot<ConsequentData>) => doc.data()).sort((a, b) => this._sortByName(a, b));
+        });
+    }
+
+    private _sortByName(a: FirebaseData, b: FirebaseData): number {
+        const x = a.name.toLowerCase();
+        const y = b.name.toLowerCase();
+
+        if (x < y) { return -1; }
+        if (x > y) { return 1; }
+        return 0;
     }
 
     sendBid(event): void {

@@ -446,31 +446,6 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
             scope._offerABid(nextNorm, opponent_bid, scope);
         }, 1000);
-
-        // if (isNull(scope.lastAgentBid)) {
-        //     const newMessage = new Message(scope.hospital.id, 'Let me think my offer.');
-        //     scope.negotiation.dialogs.push(newMessage);
-
-        //     scope.graph = new DirectedGraph();
-
-        //     setTimeout(() => {
-        //         scope._createOutcomeSpace2(opponent_bid, scope);
-
-        //         const nextNorm = scope.graph.leaves.sort((a, b) => b.utility - a.utility)[0];
-        //         scope._offerABid(nextNorm, opponent_bid, scope);
-        //     }, 1000);
-        // } else {
-        //     const inEdges = scope.graph.getInEdges(scope.lastAgentBid.consistOf[0]);
-        //     let nextNorms = scope.lastAgentBid.consistOf[0];
-
-        //     if (!isNullOrUndefined(inEdges) && inEdges.length > 0) {
-        //         inEdges.sort((a, b) => b.data.utility - a.data.utility);
-
-        //         nextNorms = inEdges[0].data;
-        //     }
-
-        //     scope._offerABid(nextNorms, opponent_bid, scope);
-        // }
     }
 
     private _offerABid(norm: Norm, bid: Bid, scope): void {
