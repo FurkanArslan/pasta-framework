@@ -3,7 +3,7 @@ import { FuseConfigService } from '@fuse/services/config.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { StarRatingConfigService, HoverRatingChangeEvent, ClickEvent, RatingChangeEvent } from 'angular-star-rating';
 import { fuseAnimations } from '@fuse/animations';
-import { PastaService } from '../pasta.service';
+import { LogService } from '../../logs.service';
 
 @Component({
     selector: 'app-thank',
@@ -30,7 +30,7 @@ export class ThankComponent implements OnInit {
        */
     constructor(
         private _fuseConfigService: FuseConfigService,
-        private _pastaService: PastaService
+        private _pastaService: LogService
     ) {
         // Configure the layout
         this._fuseConfigService.config = {

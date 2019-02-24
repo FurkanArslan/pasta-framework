@@ -30,7 +30,7 @@ import { Router } from '@angular/router';
 
 import * as moment from 'moment';
 import { takeUntil, map, filter } from 'rxjs/operators';
-import { PastaService } from '../pasta.service';
+import { LogService } from '../../logs.service';
 import { Bidding } from '../../models/bidding-strategies/bidding';
 import { TimeBasedConcession } from '../../models/bidding-strategies/time-based-concession';
 
@@ -86,7 +86,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         private afs: AngularFirestore,
         private normFactoryService: NormFactoryService,
         private router: Router,
-        private _pastaService: PastaService
+        private _pastaService: LogService
     ) {
         this.user = new User('3', 'Government Agency', null, Roles.POLICE);
         this.hospital = new User('2', 'Hospital Administration', 'assets/images/avatars/Josefina.jpg', Roles.HOSPITAL);

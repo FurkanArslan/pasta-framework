@@ -1,18 +1,26 @@
 import { Injectable } from '@angular/core';
-import { Log, BidLog } from '../models/log.model';
-import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
+import { Log, BidLog, Logs } from './models/log.model';
+import { AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
 
-import { firestore } from 'firebase/app';
-import { Bid } from '../models/bid.model';
+import { Bid } from './models/bid.model';
+import { isNullOrUndefined } from 'util';
 
 @Injectable()
-export class PastaService {
+export class LogService {
     private _log: Log;
-    private _logs$: AngularFirestoreCollection<Log>;
+
+    private _logs$: AngularFirestoreDocument<Logs>;
+    private _logs: Logs;
 
     constructor(private afs: AngularFirestore, ) {
-        this._logs$ = this.afs.collection<Log>('logs');
-        this.createLog();
+        this._logs$ = afs.doc<Logs>('logs-v2/1');
+        this._logs$.valueChanges().subscribe(data => {
+            this._logs = data;
+
+            if (isNullOrUndefined(this._log)) {
+                this.createLog();
+            }
+        });
     }
 
     setUserInfo(userName, userLastName): void {
@@ -23,13 +31,23 @@ export class PastaService {
     }
 
     saveLog(): void {
-        const convertedData = JSON.parse(JSON.stringify(this._log));
-        this._logs$.doc(this._log.id).set(convertedData);
+        const index = this._logs.logs.findIndex(x => x.id === this._log.id);
+
+        this._logs.logs.splice(index, 1, this._log);
+
+        const convertedData = JSON.parse(JSON.stringify(this._logs));
+
+        this._logs$.update(convertedData);
     }
 
     createLog(): void {
         this._log = new Log();
-        this._log.id = this.afs.createId();
+
+        this._logs.logs.push(this._log);
+
+        const convertedData = JSON.parse(JSON.stringify(this._logs));
+
+        this._logs$.update(convertedData);
     }
 
     saveStartDate(date: Date): void {
@@ -57,7 +75,7 @@ export class PastaService {
         this.saveLog();
     }
 
-    saveUserUtility(utility: number): void{
+    saveUserUtility(utility: number): void {
         this._log.utilityOfUser = utility;
 
         this.saveLog();

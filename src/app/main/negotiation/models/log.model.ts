@@ -1,4 +1,9 @@
 import * as moment from 'moment';
+import { FuseUtils } from '@fuse/utils';
+
+export class Logs {
+    logs: Log[];
+}
 
 export class Log {
     id: string;
@@ -13,6 +18,7 @@ export class Log {
 
     constructor() {
         this.bids = [];
+        this.id = FuseUtils.generateGUID();
     }
 }
 

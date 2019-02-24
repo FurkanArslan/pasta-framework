@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FuseConfigService } from '@fuse/services/config.service';
 import { fuseAnimations } from '@fuse/animations';
 import { Router } from '@angular/router';
-import { PastaService } from '../pasta.service';
+import { LogService } from '../../logs.service';
 
 @Component({
     selector: 'login-2',
@@ -26,7 +26,7 @@ export class Login2Component implements OnInit {
         private _fuseConfigService: FuseConfigService,
         private _formBuilder: FormBuilder,
         private router: Router,
-        private _pastaService: PastaService
+        private _pastaService: LogService
     ) {
         // Configure the layout
         this._fuseConfigService.config = {

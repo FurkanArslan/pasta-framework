@@ -29,7 +29,7 @@ import { StarRatingModule } from 'angular-star-rating';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Login2Component } from './components/login-2/login-2.component';
 import { FuseCountdownModule } from '@fuse/components';
-import { PastaService } from './components/pasta.service';
+import { LogService } from './logs.service';
 
 const routes: Routes = [
     {
@@ -91,7 +91,7 @@ const routes: Routes = [
         NegotiationService,
         ScenarioFactoryService,
         NormFactoryService,
-        PastaService
+        LogService
     ]
 })
 export class NegotiationModule {

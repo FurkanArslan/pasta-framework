@@ -19,4 +19,4 @@ firestore.indexes.json
 database.rules.json
 firestore.rules
 
-pasta-framework-firebase-adminsdk-08747-960355abab.json
+*.json
