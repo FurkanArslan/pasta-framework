@@ -37,7 +37,7 @@ const routes: Routes = [
         component: Login2Component,
     },
     {
-        path: 'negotiation',
+        path: 'negotiation/:opponent',
         component: NegotiationComponent,
         children: [
             { path: '', component: NegotiationViewComponent },

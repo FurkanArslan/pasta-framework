@@ -11,11 +11,27 @@ export class Prohibition extends Norm {
     }
 
     public toString(): string {
-        if (this.compoundAntecedent.includes('always')) {
-            return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
+        // let subject = '';
+
+        // if (this.hasSubject.shortName === 'All') {
+        //     subject = 'anyone';
+        // } else if (this.hasSubject.shortName === 'GO') {
+        //     subject = 'any government officer';
+        // } else if (this.hasSubject.shortName === 'GA') {
+        //     subject = 'whole government agency';
+        // }
+
+        // if (this.hasAntecedent[0].shortName === 'true') {
+        //     return `I cannot allow ${subject} to ${this.compoundConsequent}`;
+        // }
+
+        // return `I cannot allow ${subject} to ${this.compoundConsequent} unless ${this.compoundAntecedent}.`;
+
+        if (this.hasAntecedent[0].shortName === 'true') {
+            return `${this.hasSubject.name} should not ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
         }
 
-        return `${this.hasSubject.name} is prohibited by ${this.hasObject} to ${this.compoundConsequent} when not ${this.compoundAntecedent}.`;
+        return `${this.hasSubject.name} should not ${this.compoundConsequent} when not ${this.compoundAntecedent}.`;
     }
 
     public toNormRepresentation(isIncludeUtility: boolean): string {

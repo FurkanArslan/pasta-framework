@@ -36,9 +36,13 @@
             <img src="assets/images/logos/fuse.svg">
         </div>
 
-        <div class="title">Please Enter Your Name And Surname</div>
+        <!-- <div class="title">Please Enter Your Name And Surname</div> -->
 
         <form name="loginForm" [formGroup]="loginForm" novalidate fxLayout="column" (ngSubmit)="onSubmit()">
+
+            <div class="separator">
+                <span class="text">Personal Information</span>
+            </div>
 
             <mat-form-field appearance="outline">
                 <mat-label>Name</mat-label>
@@ -58,15 +62,20 @@
                 </mat-error>
             </mat-form-field>
 
-            <!-- <div class="remember-forgot-password" fxLayout="row" fxLayout.xs="column" fxLayoutAlign="space-between center">
-                    <mat-checkbox class="remember-me" aria-label="Remember Me">
-                        Remember Me
-                    </mat-checkbox>
+            <div class="separator">
+                <span class="text">Opponent Selection</span>
+            </div>
 
-                    <a class="forgot-password" [routerLink]="'/pages/auth/forgot-password-2'">
-                        Forgot Password?
-                    </a>
-                </div> -->
+            <mat-form-field class="message-text" appearance="outline">
+                <mat-select placeholder="Choice Opponent" formControlName="opponent" required>
+                    <mat-option *ngFor="let opponent of opponentTypes" [value]="opponent">
+                        {{opponent.value}}
+                    </mat-option>
+                </mat-select>
+                <mat-error>
+                    Opponent selection is required
+                </mat-error>
+            </mat-form-field>
 
             <button mat-raised-button color="accent" class="submit-button" aria-label="LOGIN" [disabled]="loginForm.invalid"
                 type="submit">
@@ -75,26 +84,5 @@
 
         </form>
 
-        <!-- <div class="separator">
-                <span class="text">OR</span>
-            </div>
-
-            <div fxLayout="column" fxLayoutAlign="start center">
-
-                <button mat-raised-button class="google">
-                    Log in with Google
-                </button>
-
-                <button mat-raised-button class="facebook">
-                    Log in with Facebook
-                </button>
-
-            </div>
-
-            <div class="register" fxLayout="column" fxLayoutAlign="center center">
-                <span class="text">Don't have an account?</span>
-                <a class="link" [routerLink]="'/pages/auth/register-2'">Create an account</a>
-            </div> -->
-        <!-- </div> -->
     </div>
 </div>

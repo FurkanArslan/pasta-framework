@@ -54,77 +54,50 @@ login-2 {
                 max-width: 100%;
             }
 
-            // #login-form {
-                // padding: 128px 48px 48px 48px;
-                padding: 0 48px;
+            padding: 0 48px;
 
-                @include media-breakpoint('xs') {
-                    text-align: center;
-                    padding: 24px;
-                }
+            @include media-breakpoint('xs') {
+                text-align: center;
+                padding: 24px;
+            }
 
-                .logo {
-                    width: 128px;
-                    margin: 32px auto;
-                }
+            .logo {
+                width: 128px;
+                margin: 32px auto;
+            }
 
-                .title {
-                    font-size: 21px;
-                }
+            .title {
+                font-size: 21px;
+            }
 
-                .description {
-                    padding-top: 8px;
-                }
+            .description {
+                padding-top: 8px;
+            }
 
-                form {
+            form {
+                width: 100%;
+                padding-top: 32px;
+
+                mat-form-field {
                     width: 100%;
-                    padding-top: 32px;
 
-                    mat-form-field {
-                        width: 100%;
-
-                        @include media-breakpoint('xs') {
-                            width: 80%;
-                        }
+                    @include media-breakpoint('xs') {
+                        width: 80%;
                     }
+                }
 
-                    mat-checkbox {
-                        margin: 0;
-                    }
-
-                    .remember-forgot-password {
-                        font-size: 13px;
-                        margin-top: 8px;
-
-                        .remember-me {
-                            margin-bottom: 16px
-                        }
-
-                        .forgot-password {
-                            font-size: 13px;
-                            font-weight: 600;
-                            margin-bottom: 16px
-                        }
-                    }
-
-                    .submit-button {
-                        width: 100%;
-                        margin: 16px auto;
-                        display: block;
-
-                        @include media-breakpoint('xs') {
-                            width: 80%;
-                        }
-                    }
+                mat-checkbox {
+                    margin: 0;
                 }
 
                 .separator {
-                    font-size: 15px;
+                    color: rgba(0, 0, 0, 0.3);
+                    font-size: 16px;
                     font-weight: 600;
                     margin: 24px auto;
                     position: relative;
                     overflow: hidden;
-                    width: 100px;
+                    width: 210px;
                     text-align: center;
 
                     .text {
@@ -139,8 +112,9 @@ login-2 {
                             display: block;
                             width: 30px;
                             position: absolute;
-                            top: 10px;
+                            top: 12px;
                             border-top: 1px solid;
+                            border-top-color: rgba(0,0,0,.12);
                         }
 
                         &:before {
@@ -153,48 +127,58 @@ login-2 {
                     }
                 }
 
-                button {
+                .submit-button {
+                    width: 100%;
+                    margin: 16px auto;
+                    display: block;
 
-                    &.google,
-                    &.facebook {
-                        width: 70%;
-                        text-transform: none;
+                    @include media-breakpoint('xs') {
+                        width: 80%;
+                    }
+                }
+            }
+
+            button {
+
+                &.google,
+                &.facebook {
+                    width: 70%;
+                    text-transform: none;
+                    color: #FFFFFF;
+                    font-size: 13px;
+
+                    @include media-breakpoint('xs') {
+                        width: 60%;
+                    }
+
+                    mat-icon {
                         color: #FFFFFF;
-                        font-size: 13px;
-
-                        @include media-breakpoint('xs') {
-                            width: 60%;
-                        }
-
-                        mat-icon {
-                            color: #FFFFFF;
-                            margin: 0 8px 0 0;
-                        }
-                    }
-
-                    &.google {
-                        background-color: #D73D32;
-                        margin-bottom: 8px;
-                    }
-
-                    &.facebook {
-                        background-color: rgb(63, 92, 154);
+                        margin: 0 8px 0 0;
                     }
                 }
 
-                .register {
-                    margin: 32px auto 24px auto;
-                    width: 250px;
-                    font-weight: 600;
-
-                    .text {
-                        margin-right: 8px;
-                    }
-
-                    .link {
-
-                    }
+                &.google {
+                    background-color: #D73D32;
+                    margin-bottom: 8px;
                 }
+
+                &.facebook {
+                    background-color: rgb(63, 92, 154);
+                }
+            }
+
+            .register {
+                margin: 32px auto 24px auto;
+                width: 250px;
+                font-weight: 600;
+
+                .text {
+                    margin-right: 8px;
+                }
+
+                .link {}
+            }
+
             // }
         }
     }
