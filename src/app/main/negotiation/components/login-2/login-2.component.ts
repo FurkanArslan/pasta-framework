@@ -16,6 +16,14 @@ import { LogService } from '../../logs.service';
 export class Login2Component implements OnInit {
     loginForm: FormGroup;
 
+    opponentTypes = [{
+        key: 'Basic-Strategy',
+        value: 'opponent-1'
+    }, {
+        key: 'Similarity-Based',
+        value: 'opponent-2'
+    }];
+
     /**
      * Constructor
      *
@@ -57,15 +65,16 @@ export class Login2Component implements OnInit {
     ngOnInit(): void {
         this.loginForm = this._formBuilder.group({
             name: ['', [Validators.required]],
-            surname: ['', Validators.required]
+            surname: ['', Validators.required],
+            opponent: ['', Validators.required]
         });
     }
 
     onSubmit(): void {
-        this._pastaService.setUserInfo(this.loginForm.controls.name.value, this.loginForm.controls.surname.value);
+        this._pastaService.setUserInfo(this.loginForm.controls.name.value, this.loginForm.controls.surname.value, this.loginForm.controls.opponent.value.key);
 
         setTimeout(() => {
-            this.router.navigate(['/negotiation']);
+            this.router.navigate(['/negotiation', this.loginForm.controls.opponent.value.value]);
         }, 1000);
     }
 }

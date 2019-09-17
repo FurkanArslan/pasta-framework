@@ -15,10 +15,13 @@ export class Log {
     agreementUtility: number;
     agreement: BidLog;
     utilityOfUser: number;
+    opponentType: 'Basic-Strategy' | 'Similarity-Based';
+    numberOfTurns: number;
 
     constructor() {
         this.bids = [];
         this.id = FuseUtils.generateGUID();
+        this.numberOfTurns = 0;
     }
 }
 

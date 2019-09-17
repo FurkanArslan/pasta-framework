@@ -11,7 +11,17 @@ export class Authorization extends Norm {
     }
 
     public toString(): string {
-        return `${this.hasSubject.name} is authorized by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
+        // return `${this.hasSubject.name} is authorized by ${this.hasObject} to ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
+
+        // const subject = this.hasSubject.shortName === 'GO' ? 'I want' : `${this.hasSubject.name} wants`;
+
+        // if (this.hasAntecedent[0].shortName === 'true') {
+        //     return `${subject} to ${this.compoundConsequent}`;
+        // }
+
+        // return `${subject} to ${this.compoundConsequent} if ${this.compoundAntecedent}.`;
+
+        return `${this.hasSubject.name} may ${this.compoundConsequent} when ${this.compoundAntecedent}.`;
     }
 
     public toNormRepresentation(isIncludeUtility: boolean): string {

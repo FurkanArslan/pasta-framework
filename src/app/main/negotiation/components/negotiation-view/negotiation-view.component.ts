@@ -26,13 +26,14 @@ import { FirebaseData, ConsequentData, RolesData } from '../../models/data';
 import { NormFactoryService } from '../../factories/norm-factory.service';
 import { Norm } from '../../models/norm/norm.model';
 import { Queue } from '../../models/queue.model';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 import * as moment from 'moment';
 import { takeUntil, map, filter } from 'rxjs/operators';
 import { LogService } from '../../logs.service';
-import { Bidding } from '../../models/bidding-strategies/bidding';
-import { TimeBasedConcession } from '../../models/bidding-strategies/time-based-concession';
+import { SimilarityBasedConcession } from '../../models/strategies/bidding-strategies/similarity-based-concession';
+import { Bidding } from '../../models/strategies/bidding-strategies/bidding';
+import { DepthFirstConcession } from '../../models/strategies/bidding-strategies/depth-first-concession';
 
 @Component({
     selector: 'negotiation-view',
@@ -74,6 +75,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     diff: number;
 
     private biddingStrategy: Bidding;
+    private readonly NEGOTIATION_TIME = 5;
 
     /**
      * Constructor
@@ -86,6 +88,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         private afs: AngularFirestore,
         private normFactoryService: NormFactoryService,
         private router: Router,
+        private route: ActivatedRoute,
         private _pastaService: LogService
     ) {
         this.user = new User('3', 'Government Agency', null, Roles.POLICE);
@@ -106,7 +109,13 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         moment.locale('tr');
 
-        this.biddingStrategy = new TimeBasedConcession(normFactoryService);
+        this.route.params.subscribe(param => {
+            if (param.opponent === 'opponent-1') {
+                this.biddingStrategy = new DepthFirstConcession(normFactoryService);
+            } else if (param.opponent === 'opponent-2') {
+                this.biddingStrategy = new SimilarityBasedConcession(normFactoryService);
+            }
+        });
     }
 
     // -----------------------------------------------------------------------------------------------------
@@ -159,9 +168,13 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
     private _startCountDown(): void {
         const currDate = moment();
-        const eventDate = moment().add(10, 'minutes');
+        const eventDate = moment().add(this.NEGOTIATION_TIME, 'minutes');
 
-        this._pastaService.saveStartDate(currDate.toDate());
+        try {
+            this._pastaService.saveStartDate(currDate.toDate());
+        } catch (error) {
+            this.router.navigate(['/']);
+        }
 
         this.diff = eventDate.diff(currDate, 'seconds');
 
@@ -228,7 +241,12 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
      * On destroy
      */
     ngOnDestroy(): void {
-        this._pastaService.saveEndDate(moment().toDate());
+        try {
+            this._pastaService.saveEndDate(moment().toDate());
+        } catch (error) {
+
+        }
+
         // Unsubscribe from all subscriptions
         this._unsubscribeAll.next();
         this._unsubscribeAll.complete();
@@ -433,8 +451,8 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
     }
 
     private onAgentTurn(scope): void {
+        scope.readyToReply();
         const opponent_bid = scope.negotiation.bids[scope.negotiation.bids.length - 1];
-        scope._pastaService.addNewBid(opponent_bid);
 
         if (!scope.biddingStrategy.isGraphGenerated) {
             const newMessage = new Message(scope.hospital.id, 'Let me think my offer.');
@@ -452,6 +470,15 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         const opponentNorm = bid.consistOf[0];
         const findInGraph = this.biddingStrategy.graph.getNode(opponentNorm.id);
 
+        if (!isNullOrUndefined(findInGraph)) {
+            this._pastaService.addNewBid({
+                ...bid,
+                consistOf: [findInGraph]
+            });
+        } else {
+            this._pastaService.addNewBid(bid);
+        }
+
         if (!isNullOrUndefined(findInGraph) && findInGraph.utility >= norm.utility) {
             // Message
             const newMessage = new Message(this.hospital.id, 'I accept your offer');
@@ -460,14 +487,15 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             setTimeout(() => {
                 this.negotiation.dialogs.push(newMessage);
 
-                this.readyToReply();
-
                 this._pastaService.saveAgreement(bid, findInGraph.utility);
 
                 this.negotiationPhrase.changePhrase(NegotiationPhrases.EXIT);
+
+                this.readyToReply();
             }, 2000);
         } else {
             setTimeout(() => {
+                // this.generateOfferText();
                 const newBid = new Bid(null, this.hospital, this.user, [norm]);
                 this.lastAgentBid = newBid;
 
@@ -477,11 +505,34 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
                 this._pastaService.addNewBid(newBid);
                 this.negotiation.bids.push(newBid);
+
                 this.negotiationPhrase.changePhrase(NegotiationPhrases.CONTINUE_OR_EXIT);
+
+                this.readyToReply();
             }, 2000);
         }
+    }
 
+    private generateOfferText(): void {
+        const randomIndex = Math.floor(Math.random() * 2);
 
+        switch (randomIndex) {
+            case 0:
+                this.createMessage('I am afraid, I cannot accept your offer');
+                this.createMessage('How about this one?');
+                break;
+            case 1:
+                this.createMessage('hmm this is an offer I cannot accept.');
+                this.createMessage('I may offer this one?');
+                break;
+            // case 2:
+            //     this.createMessage('hmm this is an offer I cannot accept.');
+            //     this.createMessage('I may offer this one?');
+            //     break;
+
+            default:
+                break;
+        }
     }
 
     private onExit(scope): void {

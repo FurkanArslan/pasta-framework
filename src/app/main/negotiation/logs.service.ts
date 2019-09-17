@@ -13,7 +13,7 @@ export class LogService {
     private _logs: Logs;
 
     constructor(private afs: AngularFirestore, ) {
-        this._logs$ = afs.doc<Logs>('logs-v2/1');
+        this._logs$ = afs.doc<Logs>('logs-v2/2');
         this._logs$.valueChanges().subscribe(data => {
             this._logs = data;
 
@@ -23,9 +23,10 @@ export class LogService {
         });
     }
 
-    setUserInfo(userName, userLastName): void {
+    setUserInfo(userName, userLastName, opponentType): void {
         this._log.username = userName;
         this._log.userLastName = userLastName;
+        this._log.opponentType = opponentType;
 
         this.saveLog();
     }
@@ -64,6 +65,7 @@ export class LogService {
 
     addNewBid(bid: Bid): void {
         this._log.bids.push(new BidLog(bid.offeredBy.name, bid.offeredTo.name, bid.consistOf[0].toNormRepresentation(false), bid.consistOf[0].utility));
+        this._log.numberOfTurns += 1;
 
         this.saveLog();
     }

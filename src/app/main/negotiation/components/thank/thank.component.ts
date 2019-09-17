@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { FuseConfigService } from '@fuse/services/config.service';
 import { FormGroup, FormControl } from '@angular/forms';
-import { StarRatingConfigService, HoverRatingChangeEvent, ClickEvent, RatingChangeEvent } from 'angular-star-rating';
+import { StarRatingConfigService, RatingChangeEvent } from 'angular-star-rating';
 import { fuseAnimations } from '@fuse/animations';
 import { LogService } from '../../logs.service';
 
@@ -10,7 +10,7 @@ import { LogService } from '../../logs.service';
     templateUrl: './thank.component.html',
     styleUrls: ['./thank.component.scss'],
     providers: [StarRatingConfigService],
-    // encapsulation: ViewEncapsulation.None,
+    encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations
 })
 export class ThankComponent implements OnInit {

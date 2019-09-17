@@ -8,6 +8,7 @@ export abstract class Norm {
     hasAntecedent: AntecedentData[];
     hasConsequent: ConsequentData[];
     normType: NormTypes;
+    similarity?: number;
     private _utilityValue: number;
     private _isInitialUtility: boolean;
 
