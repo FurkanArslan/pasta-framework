@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Log, BidLog, Logs } from './models/log.model';
-import { AngularFirestore, AngularFirestoreDocument} from '@angular/fire/firestore';
+import { AngularFirestore, AngularFirestoreDocument } from '@angular/fire/firestore';
 
 import { Bid } from './models/bid.model';
 import { isNullOrUndefined } from 'util';
@@ -12,8 +12,8 @@ export class LogService {
     private _logs$: AngularFirestoreDocument<Logs>;
     private _logs: Logs;
 
-    constructor(private afs: AngularFirestore, ) {
-        this._logs$ = afs.doc<Logs>('logs-v2/2');
+    constructor(private afs: AngularFirestore) {
+        this._logs$ = afs.doc<Logs>('logs-v3/1');
         this._logs$.valueChanges().subscribe(data => {
             this._logs = data;
 
@@ -23,7 +23,7 @@ export class LogService {
         });
     }
 
-    setUserInfo(userName, userLastName, opponentType): void {
+    setUserInfo(userName: string, userLastName: string, opponentType: 'Basic-Strategy' | 'Similarity-Based'): void {
         this._log.username = userName;
         this._log.userLastName = userLastName;
         this._log.opponentType = opponentType;
@@ -64,7 +64,9 @@ export class LogService {
     }
 
     addNewBid(bid: Bid): void {
-        this._log.bids.push(new BidLog(bid.offeredBy.name, bid.offeredTo.name, bid.consistOf[0].toNormRepresentation(false), bid.consistOf[0].utility));
+        this._log.bids.push(
+            new BidLog(bid.offeredBy.name, bid.offeredTo.name, bid.consistOf[0].toNormRepresentation(false), bid.consistOf[0].utility)
+        );
         this._log.numberOfTurns += 1;
 
         this.saveLog();
@@ -79,6 +81,12 @@ export class LogService {
 
     saveUserUtility(utility: number): void {
         this._log.utilityOfUser = utility;
+
+        this.saveLog();
+    }
+
+    saveGraph(graph: string[]): void {
+        this._log.graph = graph;
 
         this.saveLog();
     }

@@ -3,13 +3,14 @@ import { NormFactoryService } from '../../../factories/norm-factory.service';
 import { Bid } from '../../bid.model';
 import { Norm } from '../../norm/norm.model';
 import { DirectedGraph } from '../../graph.model';
-import { RolesData, ConsequentData, FirebaseData } from '../../data';
+import { FirebaseData } from '../../data';
 import { isNullOrUndefined } from 'util';
+import { LogService } from '../../../logs.service';
 
 export class SimilarityBasedConcession extends Bidding {
 
-    constructor(normFactoryService: NormFactoryService) {
-        super(normFactoryService);
+    constructor(normFactoryService: NormFactoryService, logService: LogService) {
+        super(normFactoryService, logService);
     }
 
     public getOffer(opponentOffer: Bid, remainingTime: number): Norm {
@@ -18,6 +19,16 @@ export class SimilarityBasedConcession extends Bidding {
 
             this._generateGraph(opponentOffer);
             this._isGraphGenerated = true;
+
+            this._logGraphData();
+        }
+
+        const findInGraph = this.graph.getNode(opponentOffer.consistOf[0].id);
+
+        if (isNullOrUndefined(findInGraph)) {
+            this._generateGraph(opponentOffer, true);
+
+            this._logGraphData();
         }
 
         let currentLevel = (this.graph.maxDepth * remainingTime) / 300;

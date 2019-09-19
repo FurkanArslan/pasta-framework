@@ -3,11 +3,8 @@ import { Norm } from '../models/norm/norm.model';
 import { NormTypes } from '../models/norm/norm-types.enum';
 import { Authorization } from '../models/norm/authorization.model';
 import { Prohibition } from '../models/norm/prohibition.model';
-import { Commitment } from '../models/norm/commitment.model';
 import { FirebaseData, ConsequentData, RolesData } from '../models/data';
-import { Consequent } from '../models/consequent.model';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/firestore';
-import { Observable } from 'rxjs/observable';
 import { BidUtils } from '../utils/bid-utils';
 
 import { Subscription } from 'rxjs';

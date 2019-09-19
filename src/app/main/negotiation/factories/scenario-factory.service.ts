@@ -4,7 +4,7 @@ import { ScenarioTypes } from '../models/scenario/scenario-types.enum';
 
 import { PhScenario } from '../models/scenario/ph-scenario.model';
 import { PLScenario } from '../models/scenario/pl-scenario.model';
-import { PCScenario } from '../models/scenario/PC-scenario.model';
+import { PCScenario } from '../models/scenario/pc-scenario.model';
 import { Scenario } from '../models/scenario/scenario.model';
 
 @Injectable()

@@ -57,7 +57,7 @@ export class DrawGraphComponent implements OnInit {
     zoom = {
         min: 1e-50,
         max: 1e50
-    }
+    };
 
     graphData = {
         nodes: null,
