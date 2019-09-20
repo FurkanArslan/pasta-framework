@@ -111,9 +111,9 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
 
         this.route.params.subscribe(param => {
             if (param.opponent === 'opponent-1') {
-                this.biddingStrategy = new DepthFirstConcession(normFactoryService);
+                this.biddingStrategy = new DepthFirstConcession(normFactoryService, _pastaService);
             } else if (param.opponent === 'opponent-2') {
-                this.biddingStrategy = new SimilarityBasedConcession(normFactoryService);
+                this.biddingStrategy = new SimilarityBasedConcession(normFactoryService, _pastaService);
             }
         });
     }
@@ -141,7 +141,7 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
             values.forEach(value => {
                 switch (value.name) {
                     case 'Privacy': value.weight = 0.6; break;
-                    // case 'Security': 
+                    // case 'Security':
                     // case 'Safety': value.weight = 0.2; break;
                     default: value.weight = 0.2;
                 }
@@ -462,11 +462,11 @@ export class NegotiationViewComponent implements OnInit, OnDestroy, AfterViewIni
         setTimeout(() => {
             const nextNorm = scope.biddingStrategy.getOffer(opponent_bid, scope.diff);
 
-            scope._offerABid(nextNorm, opponent_bid, scope);
+            scope._offerABid(nextNorm, opponent_bid);
         }, 1000);
     }
 
-    private _offerABid(norm: Norm, bid: Bid, scope): void {
+    private _offerABid(norm: Norm, bid: Bid): void {
         const opponentNorm = bid.consistOf[0];
         const findInGraph = this.biddingStrategy.graph.getNode(opponentNorm.id);
 

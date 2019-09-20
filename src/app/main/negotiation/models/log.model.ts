@@ -17,11 +17,13 @@ export class Log {
     utilityOfUser: number;
     opponentType: 'Basic-Strategy' | 'Similarity-Based';
     numberOfTurns: number;
+    graph: string[];
 
     constructor() {
         this.bids = [];
         this.id = FuseUtils.generateGUID();
         this.numberOfTurns = 0;
+        this.graph = [];
     }
 }
 

@@ -26,7 +26,6 @@ export class DirectedGraph {
         this._maxDepth = 0;
     }
 
-
     /**
      * Add a directed edge.  This will add any vertex not already known.
      * @param source The source of the edge.
@@ -96,7 +95,7 @@ export class DirectedGraph {
         }
     }
 
-    private _setDepth(source, target): void{
+    private _setDepth(source, target): void {
         target.level = source.level + 1;
         this.maxDepth = source.level + 1;
 
@@ -153,14 +152,12 @@ export class DirectedGraph {
         return this._inEdges.get(node);
     }
 
-
     /**
      * Get the edges.
      */
     get edges(): Map<Norm, Edge[]> {
         return this._outEdges;
     }
-
 
     /**
      * Get the leaf nodes.
@@ -198,7 +195,6 @@ export class DirectedGraph {
         return new DirectedGraph(new Map<Norm, Edge[]>(edges));
     }
 
-
     /**
      * Return a graph which is the reverse of this graph.
      */
@@ -216,7 +212,6 @@ export class DirectedGraph {
 
         return rev;
     }
-
 
     /**
      * Gets the path length of each reachable node to the given vertex.
@@ -250,7 +245,6 @@ export class DirectedGraph {
         recurse(root, 0);
         return adjacencies;
     }
-
 
     /**
      * Checks for the presence of node in parents and throws if found.
