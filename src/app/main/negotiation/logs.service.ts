@@ -13,7 +13,7 @@ export class LogService {
     private _logs: Logs;
 
     constructor(private afs: AngularFirestore) {
-        this._logs$ = afs.doc<Logs>('logs-v3/1');
+        this._logs$ = afs.doc<Logs>('logs-v3/2');
         this._logs$.valueChanges().subscribe(data => {
             this._logs = data;
 
