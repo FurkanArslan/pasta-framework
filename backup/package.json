@@ -1,0 +1,22 @@
+{
+    "name": "counterfake-db",
+    "version": "1.0.0",
+    "description": "Counterfake database project",
+    "main": "export-db.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/FakeBusters/cloud-functions.git"
+    },
+    "author": "Furkan Arslan",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/FakeBusters/cloud-functions/issues"
+    },
+    "homepage": "https://github.com/FakeBusters/cloud-functions#readme",
+    "dependencies": {
+        "firestore-export-import": "^0.2.9"
+    }
+}
